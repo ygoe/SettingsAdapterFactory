@@ -1,0 +1,49 @@
+﻿<Window
+	x:Class="SettingsDemo.Views.MainWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:sd="clr-namespace:SettingsDemo"
+	xmlns:ui="clr-namespace:Unclassified.UI"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	TextOptions.TextFormattingMode="Display"
+	UseLayoutRounding="True"
+	Title="{Binding DisplayName}"
+	Height="350" Width="525">
+
+	<Window.Resources>
+	</Window.Resources>
+
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		
+		<TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,0,0">Last started version:</TextBlock>
+		<TextBlock Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Text="{Binding Settings.LastStartedAppVersion}"/>
+
+		<TextBlock Grid.Row="1" Grid.Column="0" Margin="0,3,0,0">Sounds:</TextBlock>
+		<CheckBox Grid.Row="1" Grid.Column="1" Margin="10,3,0,0" VerticalAlignment="Center" IsChecked="{Binding Settings.IsSoundEnabled}">Enabled</CheckBox>
+
+		<TextBlock Grid.Row="2" Grid.Column="0" Margin="0,3,0,0">Remember location:</TextBlock>
+		<StackPanel Grid.Row="2" Grid.Column="1" Margin="10,3,0,0" Orientation="Horizontal">
+			<CheckBox VerticalAlignment="Center" IsChecked="{Binding Settings.View.RememberLocation}">Enabled</CheckBox>
+			<TextBlock Margin="10,0,0,0" FontStyle="Italic">(Applied after restart)</TextBlock>
+		</StackPanel>
+
+		<TextBlock Grid.Row="3" Grid.Column="0" Margin="0,3,0,0" VerticalAlignment="Center">Time zone:</TextBlock>
+		<ComboBox
+			Grid.Row="3" Grid.Column="1" Margin="10,3,0,0" VerticalAlignment="Center"
+			HorizontalAlignment="Left"
+			ItemsSource="{Binding Source={ui:Enumeration {x:Type sd:TimeType}}}"
+			DisplayMemberPath="Description"
+			SelectedValue="{Binding Settings.View.TimeType}"
+			SelectedValuePath="Value"/>
+	</Grid>
+</Window>
