@@ -45,5 +45,10 @@
 			DisplayMemberPath="Description"
 			SelectedValue="{Binding Settings.View.TimeType}"
 			SelectedValuePath="Value"/>
+
+		<StackPanel Grid.Row="4" Grid.Column="1" Margin="10,30,0,0" Orientation="Horizontal">
+			<Button Click="FileButton_Click">Test file</Button>
+			<Button Click="RegistryButton_Click" Margin="6,0,0,0">Test registry</Button>
+		</StackPanel>
 	</Grid>
 </Window>

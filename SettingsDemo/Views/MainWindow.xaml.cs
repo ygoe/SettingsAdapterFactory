@@ -68,7 +68,25 @@ namespace SettingsDemo.Views
 
 		#region Control event handlers
 
-		// TODO: Put control event handler methods here
+		private void FileButton_Click(object sender, RoutedEventArgs e)
+		{
+#if DEBUG
+			new Test().RunFile();
+			MessageBox.Show("Test passed.");
+#else
+			MessageBox.Show("Test can only be run in Debug build.");
+#endif
+		}
+
+		private void RegistryButton_Click(object sender, RoutedEventArgs e)
+		{
+#if DEBUG
+			new Test().RunRegistry();
+			MessageBox.Show("Test passed.");
+#else
+			MessageBox.Show("Test can only be run in Debug build.");
+#endif
+		}
 
 		#endregion Control event handlers
 	}

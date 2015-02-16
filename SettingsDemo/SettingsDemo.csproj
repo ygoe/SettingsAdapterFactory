@@ -71,6 +71,7 @@
     <Compile Include="Plugins\IPluginSettings.cs" />
     <Compile Include="IAppSettings.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Test.cs" />
     <Compile Include="Unclassified\UI\BooleanBoxes.cs" />
     <Compile Include="Unclassified\UI\DelegateCommand.cs" />
     <Compile Include="Unclassified\UI\DependencyObjectExtensions.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Unclassified\Util\FileSettingsStore.cs" />
     <Compile Include="Unclassified\Util\ListExtensions.cs" />
     <Compile Include="Unclassified\Util\PropertyExtensions.cs" />
+    <Compile Include="Unclassified\Util\RegistrySettingsStore.cs" />
     <Compile Include="Unclassified\Util\SettingsAdapterFactory.cs" />
     <Compile Include="Unclassified\Util\SettingsHelper.cs" />
     <Compile Include="Unclassified\Util\StringExtensions.cs" />

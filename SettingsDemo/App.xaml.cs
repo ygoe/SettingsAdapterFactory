@@ -104,7 +104,8 @@ namespace SettingsDemo
 				// Changes before the last started version was tracked
 				Settings.SettingsStore.Rename("play-sounds", "sounds.enabled");
 			}
-			if (new Version(Settings.LastStartedAppVersion).CompareTo(new Version("0.3")) < 0)
+			if (string.IsNullOrEmpty(Settings.LastStartedAppVersion) ||
+				new Version(Settings.LastStartedAppVersion).CompareTo(new Version("0.3")) < 0)
 			{
 				// Changes made in version 0.3
 				Settings.SettingsStore.Rename("window.left", "MainWindowState.Left");

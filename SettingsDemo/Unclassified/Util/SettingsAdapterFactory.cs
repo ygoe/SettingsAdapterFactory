@@ -20,8 +20,8 @@ namespace Unclassified.Util
 	//     via http://stackoverflow.com/questions/3639479/implementing-inotifypropertychanged-with-reflection-emit
 
 	/// <summary>
-	/// Generates dynamic types that implement an interface with properties that bind to a settings
-	/// store and implement INotifyPropertyChanged.
+	/// Generates a dynamic implementation of an interface with properties that binds to a settings
+	/// store and implements INotifyPropertyChanged.
 	/// </summary>
 	public static class SettingsAdapterFactory
 	{

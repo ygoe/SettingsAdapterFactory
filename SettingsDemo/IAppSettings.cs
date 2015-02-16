@@ -44,10 +44,21 @@ namespace SettingsDemo
 		string LastStartedAppVersion { get; set; }
 
 		/// <summary>
+		/// Gets or sets the UI culture code.
+		/// </summary>
+		[DefaultValue("de-DE")]
+		string Culture { get; set; }
+
+		/// <summary>
 		/// Gets or sets an array containing the recently loaded files. The most recently loaded
 		/// entry is first.
 		/// </summary>
 		string[] RecentlyLoadedFiles { get; set; }
+
+		/// <summary>
+		/// Gets or sets some numbers.
+		/// </summary>
+		int[] TestNumbers { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether a sound is played on new items.
@@ -75,6 +86,12 @@ namespace SettingsDemo
 		/// </summary>
 		[DefaultValue(TimeType.Remote)]
 		TimeType TimeType { get; set; }
+
+		/// <summary>
+		/// Gets or sets the level indent size.
+		/// </summary>
+		[DefaultValue(15)]
+		int IndentSize { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the main window location is restored.
