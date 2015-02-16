@@ -15,6 +15,7 @@ namespace SettingsDemo
 		public void RunFile()
 		{
 			File.Delete("settings.xml");
+			File.Delete("settings.xml.bak");
 
 			ISettingsStore settingsStore = new FileSettingsStore("settings.xml");
 			IAppSettings settings = SettingsAdapterFactory.New<IAppSettings>(settingsStore);
@@ -45,11 +46,17 @@ namespace SettingsDemo
 
 			settingsStore.Set("Culture", "fr-FR");
 			Debug.Assert(settings.Culture == "fr-FR");
+			Debug.Assert(settings.GetCultureName() == "français (France)");
 
 			Debug.Assert(settings.View.MonospaceFont == false);
+			Debug.Assert(settings.View.FontName() == "Segoe UI");
 
 			settings.View.IndentSize = 32;
 			Debug.Assert(settings.View.IndentSize == 32);
+
+			settings.View.MonospaceFont = true;
+			Debug.Assert(settings.View.MonospaceFont == true);
+			Debug.Assert(settings.View.FontName() == "Consolas");
 
 			settings.PropertyChanged += settings_PropertyChanged;
 
@@ -66,6 +73,7 @@ namespace SettingsDemo
 
 			settings.TestNumbers = settings.TestNumbers.Concat(new[] { 13, 21, 34 }).ToArray();
 			Debug.Assert(settings.TestNumbers.Select(_ => _.ToString()).Aggregate((a, b) => a + ", " + b) == "1, 2, 3, 5, 8, 13, 21, 34");
+			Debug.Assert(settings.TestNumbersSum() == 87);
 		}
 
 		private void settings_PropertyChanged(object sender, PropertyChangedEventArgs e)

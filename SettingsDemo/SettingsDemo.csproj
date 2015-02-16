@@ -67,6 +67,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AppSettingsExtensions.cs" />
     <Compile Include="Plugins\DemoPlugin.cs" />
     <Compile Include="Plugins\IPluginSettings.cs" />
     <Compile Include="IAppSettings.cs" />
