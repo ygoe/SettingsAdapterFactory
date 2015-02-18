@@ -103,6 +103,13 @@ namespace SettingsDemo
 		/// </summary>
 		bool IsWindowOnTop { get; set; }
 
+		// EXPLANATION:
+		// The main window state uses the predefined IWindowStateSettings interface. You can use it
+		// as often as you wish for all your different application windows. You could even create
+		// your own interface inheriting from it, so you can still make use of the methods in the
+		// SettingsHelper class for window state binding, but add your own window state properties
+		// like splitter positions or other layout data.
+
 		/// <summary>
 		/// Gets the state settings of the main window.
 		/// </summary>

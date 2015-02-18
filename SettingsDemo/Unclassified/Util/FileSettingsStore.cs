@@ -1,3 +1,8 @@
+// Copyright (c) 2015, Yves Goergen, http://unclassified.software/source/settingsadapterfactory
+//
+// Copying and distribution of this file, with or without modification, are permitted provided the
+// copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
+
 // Define the following symbol if the FieldLog assembly is referenced.
 // #define WITH_FIELDLOG
 

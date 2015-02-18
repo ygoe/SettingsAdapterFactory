@@ -63,6 +63,9 @@ namespace SettingsDemo
 			changeAction = e => Debug.Assert(false, "No change notification should occur.");
 			settings.View.IndentSize = 32;
 
+			changeAction = e => Debug.Assert(e.PropertyName == "View.IndentSize" && settings.View.IndentSize == 33);
+			settings.View.IndentSize = 33;
+
 			changeAction = e => Debug.Assert(e.PropertyName == "Culture" && settings.Culture == "en-GB");
 			settings.Culture = "en-GB";
 
