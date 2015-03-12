@@ -8,6 +8,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -159,7 +160,7 @@ namespace Unclassified.Util
 		private void CheckType(object newValue)
 		{
 			// Unpack enum value
-			// NOTE: This doesn't handle arrays of enums
+			// TODO: This doesn't handle arrays of enums
 			if (newValue.GetType().IsEnum)
 			{
 				newValue = Convert.ChangeType(newValue, newValue.GetType().GetEnumUnderlyingType());
@@ -179,7 +180,8 @@ namespace Unclassified.Util
 				newValue is DateTime ||
 				newValue is DateTime[] ||
 				newValue is TimeSpan ||
-				newValue is TimeSpan[])
+				newValue is TimeSpan[] ||
+				newValue is NameValueCollection)
 			{
 				return;
 			}
@@ -211,6 +213,7 @@ namespace Unclassified.Util
 					if (newValue.Equals(oldValue)) return;
 
 					// Unpack enum value
+					// TODO: This doesn't handle arrays of enums
 					if (newValue.GetType().IsEnum)
 					{
 						newValue = Convert.ChangeType(newValue, newValue.GetType().GetEnumUnderlyingType());
@@ -704,6 +707,26 @@ namespace Unclassified.Util
 			}
 		}
 
+		/// <summary>
+		/// Gets the current NameValueCollection of a setting key, or an empty collection if the key
+		/// is unset or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public NameValueCollection GetNameValueCollection(string key)
+		{
+			lock (syncLock)
+			{
+				if (isDisposed) throw new ObjectDisposedException("");
+
+				object data = null;
+				if (store.ContainsKey(key)) data = store[key];
+
+				if (data is NameValueCollection) return data as NameValueCollection;
+				return new NameValueCollection();
+			}
+		}
+
 		#endregion Read access
 
 		#region Loading and saving
@@ -750,8 +773,9 @@ namespace Unclassified.Util
 									using (StreamReader sr = new StreamReader(cs))
 									{
 										xdoc.Load(sr);
-										////string data = sr.ReadToEnd();
-										////xdoc.LoadXml(data);
+										// DEBUG:
+										//string data = sr.ReadToEnd();
+										//xdoc.LoadXml(data);
 									}
 								}
 							}
@@ -773,74 +797,76 @@ namespace Unclassified.Util
 							if (xn.Name == "entry")
 							{
 								string key = xn.Attributes["key"].Value.Trim();
+								string type = xn.Attributes["type"].Value.Trim();
+
 								if (key == "") throw new XmlException("Empty entry key");
 
-								if (xn.Attributes["type"].Value == "string")
+								if (type == "string")
 								{
 									store.Add(key, xn.InnerText);
 								}
-								else if (xn.Attributes["type"].Value == "string[]" ||
-									xn.Attributes["type"].Value == "string-array")
+								else if (type == "string[]" ||
+									type == "string-array")
 								{
-									List<string> l = new List<string>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<string> list = new List<string>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										l.Add(n.InnerText);
+										list.Add(itemNode.InnerText);
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
 								}
-								else if (xn.Attributes["type"].Value == "int")
+								else if (type == "int")
 								{
 									store.Add(key, int.Parse(xn.InnerText));
 								}
-								else if (xn.Attributes["type"].Value == "int[]" ||
-									xn.Attributes["type"].Value == "int-array")
+								else if (type == "int[]" ||
+									type == "int-array")
 								{
-									List<int> l = new List<int>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<int> list = new List<int>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										if (n.InnerText == "")
-											l.Add(0);
+										if (itemNode.InnerText == "")
+											list.Add(0);
 										else
-											l.Add(int.Parse(n.InnerText));
+											list.Add(int.Parse(itemNode.InnerText));
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
 								}
-								else if (xn.Attributes["type"].Value == "long")
+								else if (type == "long")
 								{
 									store.Add(key, long.Parse(xn.InnerText));
 								}
-								else if (xn.Attributes["type"].Value == "long[]" ||
-									xn.Attributes["type"].Value == "long-array")
+								else if (type == "long[]" ||
+									type == "long-array")
 								{
-									List<long> l = new List<long>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<long> list = new List<long>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										if (n.InnerText == "")
-											l.Add(0);
+										if (itemNode.InnerText == "")
+											list.Add(0);
 										else
-											l.Add(long.Parse(n.InnerText));
+											list.Add(long.Parse(itemNode.InnerText));
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
 								}
-								else if (xn.Attributes["type"].Value == "double")
+								else if (type == "double")
 								{
 									store.Add(key, double.Parse(xn.InnerText, CultureInfo.InvariantCulture));
 								}
-								else if (xn.Attributes["type"].Value == "double[]" ||
-									xn.Attributes["type"].Value == "double-array")
+								else if (type == "double[]" ||
+									type == "double-array")
 								{
-									List<double> l = new List<double>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<double> list = new List<double>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										if (n.InnerText == "")
-											l.Add(0);
+										if (itemNode.InnerText == "")
+											list.Add(0);
 										else
-											l.Add(double.Parse(n.InnerText, CultureInfo.InvariantCulture));
+											list.Add(double.Parse(itemNode.InnerText, CultureInfo.InvariantCulture));
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
 								}
-								else if (xn.Attributes["type"].Value == "bool")
+								else if (type == "bool")
 								{
 									if (xn.InnerText.ToString().Trim() == "1" ||
 										xn.InnerText.ToString().Trim().ToLower() == "true") store.Add(key, true);
@@ -848,54 +874,65 @@ namespace Unclassified.Util
 										xn.InnerText.ToString().Trim().ToLower() == "false") store.Add(key, false);
 									else throw new FormatException("Invalid bool value");
 								}
-								else if (xn.Attributes["type"].Value == "bool[]" ||
-									xn.Attributes["type"].Value == "bool-array")
+								else if (type == "bool[]" ||
+									type == "bool-array")
 								{
-									List<bool> l = new List<bool>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<bool> list = new List<bool>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										if (n.InnerText.ToString().Trim() == "1" ||
-											n.InnerText.ToString().Trim().ToLower() == "true") l.Add(true);
-										else if (n.InnerText.ToString().Trim() == "0" ||
-											n.InnerText.ToString().Trim().ToLower() == "false") l.Add(false);
+										if (itemNode.InnerText.ToString().Trim() == "1" ||
+											itemNode.InnerText.ToString().Trim().ToLower() == "true") list.Add(true);
+										else if (itemNode.InnerText.ToString().Trim() == "0" ||
+											itemNode.InnerText.ToString().Trim().ToLower() == "false") list.Add(false);
 										else throw new FormatException("Invalid bool value");
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
 								}
-								else if (xn.Attributes["type"].Value == "DateTime")
+								else if (type == "DateTime")
 								{
 									store.Add(key, DateTime.Parse(xn.InnerText, null, DateTimeStyles.RoundtripKind));
 								}
-								else if (xn.Attributes["type"].Value == "DateTime[]")
+								else if (type == "DateTime[]")
 								{
-									List<DateTime> l = new List<DateTime>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<DateTime> list = new List<DateTime>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
 										long lng;
-										if (n.InnerText == "")
-											l.Add(DateTime.MinValue);
-										else if (long.TryParse(n.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out lng))   // Old format: Ticks as long integer
-											l.Add(new DateTime(lng));
+										if (itemNode.InnerText == "")
+											list.Add(DateTime.MinValue);
+										else if (long.TryParse(itemNode.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out lng))   // Old format: Ticks as long integer
+											list.Add(new DateTime(lng));
 										else
-											l.Add(DateTime.Parse(n.InnerText, null, DateTimeStyles.RoundtripKind));
+											list.Add(DateTime.Parse(itemNode.InnerText, null, DateTimeStyles.RoundtripKind));
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
 								}
-								else if (xn.Attributes["type"].Value == "TimeSpan")
+								else if (type == "TimeSpan")
 								{
 									store.Add(key, new TimeSpan(long.Parse(xn.InnerText)));
 								}
-								else if (xn.Attributes["type"].Value == "TimeSpan[]")
+								else if (type == "TimeSpan[]")
 								{
-									List<TimeSpan> l = new List<TimeSpan>();
-									foreach (XmlNode n in xn.SelectNodes("item"))
+									List<TimeSpan> list = new List<TimeSpan>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										if (n.InnerText == "")
-											l.Add(TimeSpan.Zero);
+										if (itemNode.InnerText == "")
+											list.Add(TimeSpan.Zero);
 										else
-											l.Add(new TimeSpan(long.Parse(n.InnerText)));
+											list.Add(new TimeSpan(long.Parse(itemNode.InnerText)));
 									}
-									store.Add(key, l.ToArray());
+									store.Add(key, list.ToArray());
+								}
+								else if (type == "NameValueCollection")
+								{
+									NameValueCollection collection = new NameValueCollection();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
+									{
+										string itemName = itemNode.Attributes["name"].Value.Trim();
+										string itemValue = itemNode.InnerText;
+										collection[itemName] = itemValue;
+									}
+									store.Add(key, collection);
 								}
 								else
 								{
@@ -1035,9 +1072,9 @@ namespace Unclassified.Util
 						string[] sa = (string[]) store[key];
 						foreach (string s in sa)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = s;
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = s;
+							xn.AppendChild(itemNode);
 						}
 					}
 					else if (store[key] is int)
@@ -1055,9 +1092,9 @@ namespace Unclassified.Util
 						int[] ia = (int[]) store[key];
 						foreach (int i in ia)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = i.ToString(CultureInfo.InvariantCulture);
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = i.ToString(CultureInfo.InvariantCulture);
+							xn.AppendChild(itemNode);
 						}
 					}
 					else if (store[key] is long)
@@ -1075,9 +1112,9 @@ namespace Unclassified.Util
 						long[] la = (long[]) store[key];
 						foreach (long l in la)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = l.ToString(CultureInfo.InvariantCulture);
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = l.ToString(CultureInfo.InvariantCulture);
+							xn.AppendChild(itemNode);
 						}
 					}
 					else if (store[key] is double)
@@ -1095,9 +1132,9 @@ namespace Unclassified.Util
 						double[] da = (double[]) store[key];
 						foreach (double d in da)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = d.ToString(CultureInfo.InvariantCulture);
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = d.ToString(CultureInfo.InvariantCulture);
+							xn.AppendChild(itemNode);
 						}
 					}
 					else if (store[key] is bool)
@@ -1115,9 +1152,9 @@ namespace Unclassified.Util
 						bool[] ba = (bool[]) store[key];
 						foreach (bool b in ba)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = b ? "true" : "false";
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = b ? "true" : "false";
+							xn.AppendChild(itemNode);
 						}
 					}
 					else if (store[key] is DateTime)
@@ -1135,9 +1172,9 @@ namespace Unclassified.Util
 						DateTime[] da = (DateTime[]) store[key];
 						foreach (DateTime d in da)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = d.ToString("o");
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = d.ToString("o");
+							xn.AppendChild(itemNode);
 						}
 					}
 					else if (store[key] is TimeSpan)
@@ -1155,9 +1192,25 @@ namespace Unclassified.Util
 						TimeSpan[] ta = (TimeSpan[]) store[key];
 						foreach (TimeSpan t in ta)
 						{
-							XmlNode n = xdoc.CreateElement("item");
-							n.InnerText = t.Ticks.ToString(CultureInfo.InvariantCulture);
-							xn.AppendChild(n);
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = t.Ticks.ToString(CultureInfo.InvariantCulture);
+							xn.AppendChild(itemNode);
+						}
+					}
+					else if (store[key] is NameValueCollection)
+					{
+						xa = xdoc.CreateAttribute("type");
+						xa.Value = "NameValueCollection";
+						xn.Attributes.Append(xa);
+						NameValueCollection collection = (NameValueCollection) store[key];
+						for (int i = 0; i < collection.Count; i++)
+						{
+							XmlNode itemNode = xdoc.CreateElement("item");
+							xa = xdoc.CreateAttribute("name");
+							xa.Value = collection.GetKey(i);
+							itemNode.Attributes.Append(xa);
+							itemNode.InnerText = collection[i];
+							xn.AppendChild(itemNode);
 						}
 					}
 					else

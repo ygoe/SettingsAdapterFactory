@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -89,7 +90,7 @@ namespace Unclassified.Util
 		private void CheckType(object newValue)
 		{
 			// Unpack enum value
-			// NOTE: This doesn't handle arrays of enums
+			// TODO: This doesn't handle arrays of enums
 			if (newValue.GetType().IsEnum)
 			{
 				newValue = Convert.ChangeType(newValue, newValue.GetType().GetEnumUnderlyingType());
@@ -108,7 +109,8 @@ namespace Unclassified.Util
 				newValue is DateTime ||
 				newValue is DateTime[] ||
 				newValue is TimeSpan ||
-				newValue is TimeSpan[])
+				newValue is TimeSpan[] ||
+				newValue is NameValueCollection)
 			{
 				return;
 			}
@@ -136,6 +138,7 @@ namespace Unclassified.Util
 					CheckType(newValue);
 
 					// Unpack enum value
+					// TODO: This doesn't handle arrays of enums
 					if (newValue.GetType().IsEnum)
 					{
 						newValue = Convert.ChangeType(newValue, newValue.GetType().GetEnumUnderlyingType());
@@ -156,11 +159,17 @@ namespace Unclassified.Util
 
 					RegistryValueKind kind = RegistryValueKind.Unknown;
 					if (newValue is string)
+					{
 						kind = RegistryValueKind.String;
+					}
 					else if (newValue is string[])
+					{
 						kind = RegistryValueKind.MultiString;
+					}
 					else if (newValue is int)
+					{
 						kind = RegistryValueKind.DWord;
+					}
 					else if (newValue is int[])
 					{
 						kind = RegistryValueKind.String;
@@ -169,7 +178,9 @@ namespace Unclassified.Util
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is long)
+					{
 						kind = RegistryValueKind.QWord;
+					}
 					else if (newValue is long[])
 					{
 						kind = RegistryValueKind.String;
@@ -190,7 +201,9 @@ namespace Unclassified.Util
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is bool)
+					{
 						kind = RegistryValueKind.DWord;
+					}
 					else if (newValue is bool[])
 					{
 						kind = RegistryValueKind.String;
@@ -221,6 +234,18 @@ namespace Unclassified.Util
 						newValue = ((TimeSpan[]) newValue)
 							.Select(i => i.Ticks.ToString(CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
+					}
+					else if (newValue is NameValueCollection)
+					{
+						kind = RegistryValueKind.MultiString;
+						NameValueCollection collection = (NameValueCollection) newValue;
+						string[] array = new string[collection.Count * 2];
+						for (int i = 0; i < collection.Count; i++)
+						{
+							array[2 * i] = collection.GetKey(i);
+							array[2 * i + 1] = collection[i];
+						}
+						newValue = array;
 					}
 
 					Registry.SetValue(regKey, regValue, newValue, kind);
@@ -686,6 +711,28 @@ namespace Unclassified.Util
 				.Split(',')
 				.Select(_ => new TimeSpan(Convert.ToInt64(_, CultureInfo.InvariantCulture)))
 				.ToArray();
+		}
+
+		/// <summary>
+		/// Gets the current NameValueCollection of a setting key, or an empty collection if the key
+		/// is unset or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public NameValueCollection GetNameValueCollection(string key)
+		{
+			object data = Get(key);
+
+			NameValueCollection collection = new NameValueCollection();
+			string[] array = data as string[];
+			if (array != null)
+			{
+				for (int i = 0; i < array.Length - 1; i += 2)
+				{
+					collection[array[i]] = array[i + 1];
+				}
+			}
+			return collection;
 		}
 
 		#endregion Read access

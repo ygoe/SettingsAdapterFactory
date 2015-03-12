@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -1044,6 +1045,12 @@ namespace Unclassified.Util
 		#region Get methods
 
 		/// <summary>
+		/// Gets all setting keys that are currently set in this settings store.
+		/// </summary>
+		/// <returns></returns>
+		string[] GetKeys();
+
+		/// <summary>
 		/// Gets the current bool value of a setting key, or false if the key is unset or has an
 		/// incompatible data type.
 		/// </summary>
@@ -1215,6 +1222,14 @@ namespace Unclassified.Util
 		/// <param name="key">The setting key.</param>
 		/// <returns></returns>
 		TimeSpan[] GetTimeSpanArray(string key);
+
+		/// <summary>
+		/// Gets the current NameValueCollection of a setting key, or an empty collection if the key
+		/// is unset or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		NameValueCollection GetNameValueCollection(string key);
 
 		#endregion Get methods
 	}
