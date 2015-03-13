@@ -57,6 +57,11 @@ namespace SettingsDemo
 		IList<string> RecentlyLoadedFiles { get; }
 
 		/// <summary>
+		/// Used for unit tests.
+		/// </summary>
+		IDictionary<string, int> TestMap { get; }
+
+		/// <summary>
 		/// Gets or sets some numbers.
 		/// </summary>
 		int[] TestNumbers { get; set; }

@@ -214,13 +214,13 @@ namespace Unclassified.Util
 					else if (newValue is DateTime)
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((DateTime) newValue).ToString("o");
+						newValue = ((DateTime) newValue).ToString("o", CultureInfo.InvariantCulture);
 					}
 					else if (newValue is DateTime[])
 					{
 						kind = RegistryValueKind.String;
 						newValue = ((DateTime[]) newValue)
-							.Select(i => i.ToString("o"))
+							.Select(i => i.ToString("o", CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is TimeSpan)
@@ -648,7 +648,7 @@ namespace Unclassified.Util
 			if (data == null) return fallbackValue;
 			try
 			{
-				return DateTime.Parse((string) data, null, DateTimeStyles.RoundtripKind);
+				return DateTime.Parse((string) data, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 			}
 			catch (FormatException)
 			{
@@ -669,7 +669,7 @@ namespace Unclassified.Util
 			if (data == null) return new DateTime[0];
 			return data.ToString()
 				.Split(',')
-				.Select(_ => DateTime.Parse(_, null, DateTimeStyles.RoundtripKind))
+				.Select(_ => DateTime.Parse(_, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind))
 				.ToArray();
 		}
 
@@ -735,14 +735,29 @@ namespace Unclassified.Util
 			return collection;
 		}
 
+		/// <summary>
+		/// Creates a list wrapper for an array-typed key. Changes to the list are written back to
+		/// the settings store.
+		/// </summary>
+		/// <typeparam name="T">The type of list items.</typeparam>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
 		public IList<T> CreateList<T>(string key)
 		{
-			lock (syncLock)
-			{
-				if (isDisposed) throw new ObjectDisposedException("");
+			return new SettingsStoreBoundList<T>(this, key);
+		}
 
-				return new SettingsStoreBoundList<T>(this, key);
-			}
+		/// <summary>
+		/// Creates a dictionary wrapper for a NameValueCollection-typed key. Changes to the
+		/// dictionary are written back to the settings store.
+		/// </summary>
+		/// <typeparam name="TKey">The type of dictionary keys.</typeparam>
+		/// <typeparam name="TValue">The type of dictionary values.</typeparam>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public IDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(string key)
+		{
+			return new SettingsStoreBoundDictionary<TKey, TValue>(this, key);
 		}
 
 		#endregion Read access

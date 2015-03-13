@@ -26,8 +26,31 @@ namespace Unclassified.Util
 	/// file.
 	/// </summary>
 	/// <remarks>
-	/// While this class is thread-safe enough to avoid data corruption, it may be blocking a bit
-	/// too often and cause dead-locks. Use it with care and better avoid cross-thread access.
+	/// <para>
+	///   Every time the file is written, the existing file is renamed to the extension ".bak". This
+	///   backup file is permanently kept and shall handle write errors due to power or disk
+	///   failures in the moment of writing the settings file.
+	/// </para>
+	/// <para>
+	///   The file is read into a Dictionary&lt;string, object&gt; in memory in the constructor. If
+	///   an entry value cannot be parsed for the indicated value type, or a
+	///   <see cref="FormatException"/> or <see cref="XmlException"/> is thrown otherwise while
+	///   reading the file contents, the file is renamed to the extension ".broken". If a backup
+	///   file with the extension ".bak" exists, it will be copied to the regular file name once and
+	///   the file will be read. If this file also cannot be read, no settings data will be
+	///   available in the store initially. The static event <see cref="LoadError"/> can be used to
+	///   handle read errors in the application.
+	/// </para>
+	/// <para>
+	///   Trying to read a setting value with an incompatible type, e. g. reading the string value
+	///   "abc" with the <see cref="GetInt"/> method, will cause no value to be returned. If a
+	///   fallback value is provided, this will be returned instead. Accessing a value with the
+	///   wrong method has the same behaviour as if the key was not there at all.
+	/// </para>
+	/// <para>
+	///   While this class is thread-safe enough to avoid data corruption, it may be blocking a bit
+	///   too often and cause dead-locks. Use it with care and better avoid cross-thread access.
+	/// </para>
 	/// </remarks>
 	public class FileSettingsStore : ISettingsStore
 	{
@@ -727,6 +750,13 @@ namespace Unclassified.Util
 			}
 		}
 
+		/// <summary>
+		/// Creates a list wrapper for an array-typed key. Changes to the list are written back to
+		/// the settings store.
+		/// </summary>
+		/// <typeparam name="T">The type of list items.</typeparam>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
 		public IList<T> CreateList<T>(string key)
 		{
 			lock (syncLock)
@@ -734,6 +764,24 @@ namespace Unclassified.Util
 				if (isDisposed) throw new ObjectDisposedException("");
 
 				return new SettingsStoreBoundList<T>(this, key);
+			}
+		}
+
+		/// <summary>
+		/// Creates a dictionary wrapper for a NameValueCollection-typed key. Changes to the
+		/// dictionary are written back to the settings store.
+		/// </summary>
+		/// <typeparam name="TKey">The type of dictionary keys.</typeparam>
+		/// <typeparam name="TValue">The type of dictionary values.</typeparam>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public IDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(string key)
+		{
+			lock (syncLock)
+			{
+				if (isDisposed) throw new ObjectDisposedException("");
+
+				return new SettingsStoreBoundDictionary<TKey, TValue>(this, key);
 			}
 		}
 
@@ -755,6 +803,8 @@ namespace Unclassified.Util
 				}
 				this.fileName = fileName;
 
+				// Run the following code at most two times.
+				// First with the regular file, second with a restored backup if it exists.
 				int tryCount = 2;
 				while (tryCount-- > 0)
 				{
@@ -827,7 +877,7 @@ namespace Unclassified.Util
 								}
 								else if (type == "int")
 								{
-									store.Add(key, int.Parse(xn.InnerText));
+									store.Add(key, int.Parse(xn.InnerText, CultureInfo.InvariantCulture));
 								}
 								else if (type == "int[]" ||
 									type == "int-array")
@@ -838,13 +888,13 @@ namespace Unclassified.Util
 										if (itemNode.InnerText == "")
 											list.Add(0);
 										else
-											list.Add(int.Parse(itemNode.InnerText));
+											list.Add(int.Parse(itemNode.InnerText, CultureInfo.InvariantCulture));
 									}
 									store.Add(key, list.ToArray());
 								}
 								else if (type == "long")
 								{
-									store.Add(key, long.Parse(xn.InnerText));
+									store.Add(key, long.Parse(xn.InnerText, CultureInfo.InvariantCulture));
 								}
 								else if (type == "long[]" ||
 									type == "long-array")
@@ -855,7 +905,7 @@ namespace Unclassified.Util
 										if (itemNode.InnerText == "")
 											list.Add(0);
 										else
-											list.Add(long.Parse(itemNode.InnerText));
+											list.Add(long.Parse(itemNode.InnerText, CultureInfo.InvariantCulture));
 									}
 									store.Add(key, list.ToArray());
 								}
@@ -900,7 +950,7 @@ namespace Unclassified.Util
 								}
 								else if (type == "DateTime")
 								{
-									store.Add(key, DateTime.Parse(xn.InnerText, null, DateTimeStyles.RoundtripKind));
+									store.Add(key, DateTime.Parse(xn.InnerText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
 								}
 								else if (type == "DateTime[]")
 								{
@@ -913,13 +963,13 @@ namespace Unclassified.Util
 										else if (long.TryParse(itemNode.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out lng))   // Old format: Ticks as long integer
 											list.Add(new DateTime(lng));
 										else
-											list.Add(DateTime.Parse(itemNode.InnerText, null, DateTimeStyles.RoundtripKind));
+											list.Add(DateTime.Parse(itemNode.InnerText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
 									}
 									store.Add(key, list.ToArray());
 								}
 								else if (type == "TimeSpan")
 								{
-									store.Add(key, new TimeSpan(long.Parse(xn.InnerText)));
+									store.Add(key, new TimeSpan(long.Parse(xn.InnerText, CultureInfo.InvariantCulture)));
 								}
 								else if (type == "TimeSpan[]")
 								{
@@ -929,16 +979,16 @@ namespace Unclassified.Util
 										if (itemNode.InnerText == "")
 											list.Add(TimeSpan.Zero);
 										else
-											list.Add(new TimeSpan(long.Parse(itemNode.InnerText)));
+											list.Add(new TimeSpan(long.Parse(itemNode.InnerText, CultureInfo.InvariantCulture)));
 									}
 									store.Add(key, list.ToArray());
 								}
-								else if (type == "NameValueCollection")
+								else if (type == "map")
 								{
 									NameValueCollection collection = new NameValueCollection();
 									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
-										string itemName = itemNode.Attributes["name"].Value.Trim();
+										string itemName = itemNode.Attributes["name"].Value;
 										string itemValue = itemNode.InnerText;
 										collection[itemName] = itemValue;
 									}
@@ -980,6 +1030,8 @@ namespace Unclassified.Util
 					FL.Info("Restoring backup settings file and retrying", "backupFileName = " + backupFileName);
 #endif
 					File.Copy(backupFileName, fileName, true);
+
+					// Read the restored backup file in a second iteration.
 				}
 			}
 		}
@@ -1172,7 +1224,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "DateTime";
 						xn.Attributes.Append(xa);
-						xn.InnerText = GetDateTime(key).ToString("o");
+						xn.InnerText = GetDateTime(key).ToString("o", CultureInfo.InvariantCulture);
 					}
 					else if (store[key] is DateTime[])
 					{
@@ -1210,7 +1262,7 @@ namespace Unclassified.Util
 					else if (store[key] is NameValueCollection)
 					{
 						xa = xdoc.CreateAttribute("type");
-						xa.Value = "NameValueCollection";
+						xa.Value = "map";
 						xn.Attributes.Append(xa);
 						NameValueCollection collection = (NameValueCollection) store[key];
 						for (int i = 0; i < collection.Count; i++)

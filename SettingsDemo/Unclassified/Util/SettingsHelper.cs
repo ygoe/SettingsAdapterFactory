@@ -38,45 +38,6 @@ namespace Unclassified.Util
 
 		#endregion Settings file path methods
 
-		#region Observable list methods
-
-		public static IList<bool> CreateBoolList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<bool>(key);
-		}
-
-		public static IList<int> CreateIntList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<int>(key);
-		}
-
-		public static IList<long> CreateLongList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<long>(key);
-		}
-
-		public static IList<double> CreateDoubleList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<double>(key);
-		}
-
-		public static IList<string> CreateStringList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<string>(key);
-		}
-
-		public static IList<DateTime> CreateDateTimeList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<DateTime>(key);
-		}
-
-		public static IList<TimeSpan> CreateTimeSpanList(this ISettingsStore store, string key)
-		{
-			return store.CreateList<TimeSpan>(key);
-		}
-
-		#endregion Observable list methods
-
 		#region Window state handling
 
 		// TODO: This is only for WPF windows. Add an option for Windows Forms.
