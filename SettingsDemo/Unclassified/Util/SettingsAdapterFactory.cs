@@ -1,10 +1,11 @@
-// Copyright (c) 2015, Yves Goergen, http://unclassified.software/source/settingsadapterfactory
+﻿// Copyright (c) 2015, Yves Goergen, http://unclassified.software/source/settingsadapterfactory
 //
 // Copying and distribution of this file, with or without modification, are permitted provided the
 // copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
@@ -83,9 +84,9 @@ namespace Unclassified.Util
 			}
 
 			// DEBUG: Enable the following code to verify the assembly with peverify.exe from the .NET command prompt.
-			////string fileName = assemblyBuilder.GetName().Name + ".dll";
-			////System.IO.File.Delete(fileName);
-			////assemblyBuilder.Save(fileName);
+			//string fileName = assemblyBuilder.GetName().Name + ".dll";
+			//System.IO.File.Delete(fileName);
+			//assemblyBuilder.Save(fileName);
 
 			// Adjust prefix to include the trailing dot as used internally
 			if (prefix != null)
@@ -161,6 +162,11 @@ namespace Unclassified.Util
 					// Don't create a plain method for this property getter method
 					methods.Remove(getMethod);
 					newGetMethod = CreateFieldGetter(typeBuilder, getMethod, propertyInfo, settingsStoreField);
+
+					if (propertyInfo.GetSetMethod() != null)
+					{
+						throw new NotSupportedException("The ISettingsStore-type property " + propertyInfo.Name + " must not have a setter.");
+					}
 				}
 				else if (propertyInfo.PropertyType.IsInterface)
 				{
@@ -176,6 +182,11 @@ namespace Unclassified.Util
 					// Don't create a plain method for this property getter method
 					methods.Remove(getMethod);
 					newGetMethod = CreateFieldGetter(typeBuilder, getMethod, propertyInfo, backingField);
+
+					if (propertyInfo.GetSetMethod() != null)
+					{
+						throw new NotSupportedException("The interface-type property " + propertyInfo.Name + " must not have a setter.");
+					}
 				}
 				else
 				{
@@ -246,8 +257,8 @@ namespace Unclassified.Util
 			ilGen.Emit(OpCodes.Call, baseConstructorInfo);
 
 			// DEBUG:
-			////if (interfaceType == typeof(IMainWindow))
-			////    ilGen.EmitCall(OpCodes.Call, typeof(Console).GetMethod("Beep", new Type[0]), null);
+			//if (interfaceType == typeof(IMainWindow))
+			//    ilGen.EmitCall(OpCodes.Call, typeof(Console).GetMethod("Beep", new Type[0]), null);
 
 			// this.settingsStore = parameter_1;
 			ilGen.Emit(OpCodes.Ldarg_0);
@@ -264,7 +275,59 @@ namespace Unclassified.Util
 			{
 				string propertyName = field.Name.Substring(1);   // Cut away leading "_"
 
-				if (field.FieldType.IsInterface)
+				if (IsListType(field.FieldType))
+				{
+					// This is a list type that should be implemented by an observable list that
+					// initially loads from the store and automatically passes changes back into the
+					// store. Write code that calls SettingsHelper.Create…List().
+
+					MethodInfo method;
+					Type listType = field.FieldType.GetGenericArguments()[0];
+					if (listType == typeof(bool))
+					{
+						method = MethodOf(() => SettingsHelper.CreateBoolList(default(ISettingsStore), default(string)));
+					}
+					else if (listType == typeof(int))
+					{
+						method = MethodOf(() => SettingsHelper.CreateIntList(default(ISettingsStore), default(string)));
+					}
+					else if (listType == typeof(long))
+					{
+						method = MethodOf(() => SettingsHelper.CreateLongList(default(ISettingsStore), default(string)));
+					}
+					else if (listType == typeof(double))
+					{
+						method = MethodOf(() => SettingsHelper.CreateDoubleList(default(ISettingsStore), default(string)));
+					}
+					else if (listType == typeof(string))
+					{
+						method = MethodOf(() => SettingsHelper.CreateStringList(default(ISettingsStore), default(string)));
+					}
+					else if (listType == typeof(DateTime))
+					{
+						method = MethodOf(() => SettingsHelper.CreateDateTimeList(default(ISettingsStore), default(string)));
+					}
+					else if (listType == typeof(TimeSpan))
+					{
+						method = MethodOf(() => SettingsHelper.CreateTimeSpanList(default(ISettingsStore), default(string)));
+					}
+					else
+					{
+						throw new NotSupportedException("The IList type parameter " + listType.Name + " is not supported.");
+					}
+
+					ilGen.Emit(OpCodes.Ldarg_0);
+					ilGen.Emit(OpCodes.Ldarg_1);   // settingsStore
+					// -> prefix + [propertyName]
+					ilGen.Emit(OpCodes.Ldarg_2);   // prefix
+					ilGen.Emit(OpCodes.Ldstr, propertyName);
+					ilGen.GenerateCall<string, string, string>("Concat");
+					// -> SettingsHelper.Create…List(settingsStore, prefix + [propertyName]);
+					ilGen.EmitCall(OpCodes.Call, method, null);
+					// -> [field] = ...
+					ilGen.Emit(OpCodes.Stfld, field);
+				}
+				else if (field.FieldType.IsInterface)
 				{
 					// This is another interface type. Create an implementation of it and write
 					// code that creates an instance of it.
@@ -547,7 +610,7 @@ namespace Unclassified.Util
 		}
 
 		/// <summary>
-		/// Creates the getter method for a property.
+		/// Creates the getter method for a property that returns a field.
 		/// </summary>
 		/// <param name="typeBuilder">The TypeBuilder instance.</param>
 		/// <param name="getMethod">The interface property method to create.</param>
@@ -582,7 +645,8 @@ namespace Unclassified.Util
 #pragma warning disable 1720   // Expression will always cause a System.NullReferenceException because the default value of 'generic type' is null
 
 		/// <summary>
-		/// Creates the getter method for a property.
+		/// Creates the getter method for a property that fetches a value from the
+		/// <see cref="ISettingsStore"/> instance.
 		/// </summary>
 		/// <param name="typeBuilder">The TypeBuilder instance.</param>
 		/// <param name="getMethod">The interface property method to create.</param>
@@ -604,7 +668,7 @@ namespace Unclassified.Util
 			ILGenerator ilGen = methodBuilder.GetILGenerator();
 
 			// Enums seamlessly cast to their underlying type, just consider that type
-			// NOTE: This doesn't handle arrays of enums
+			// TODO: This doesn't handle arrays of enums
 			Type propType = propertyInfo.PropertyType;
 			if (propType.IsEnum)
 			{
@@ -673,6 +737,10 @@ namespace Unclassified.Util
 			else if (propType == typeof(TimeSpan[]))
 			{
 				storeGetMethod = MethodOf(() => default(ISettingsStore).GetTimeSpanArray(default(string)));
+			}
+			else if (propType == typeof(NameValueCollection))
+			{
+				storeGetMethod = MethodOf(() => default(ISettingsStore).GetNameValueCollection(default(string)));
 			}
 			else
 			{
@@ -746,7 +814,8 @@ namespace Unclassified.Util
 		}
 
 		/// <summary>
-		/// Creates the setter method for a property.
+		/// Creates the setter method for a property that passes the value to an
+		/// <see cref="ISettingsStore"/> instance.
 		/// </summary>
 		/// <param name="typeBuilder">The TypeBuilder instance.</param>
 		/// <param name="setMethod">The interface property method to create.</param>
@@ -993,6 +1062,25 @@ namespace Unclassified.Util
 		}
 
 		#endregion ILGenerator extension methods
+
+		#region Collection property type helpers
+
+		private static bool IsListType(Type type)
+		{
+			if (type.IsGenericType)
+			{
+				if (typeof(IList<>) == type.GetGenericTypeDefinition()) return true;
+			}
+			// Alternative:
+			//if (type.IsGenericType &&
+			//    type.GetGenericArguments().Length == 1)
+			//{
+			//    if (type == typeof(IList<>).MakeGenericType(type.GetGenericArguments()[0])) return true;
+			//}
+			return false;
+		}
+
+		#endregion Collection property type helpers
 	}
 
 	#endregion SettingsAdapterFactory class
@@ -1231,8 +1319,71 @@ namespace Unclassified.Util
 		/// <returns></returns>
 		NameValueCollection GetNameValueCollection(string key);
 
+		IList<T> CreateList<T>(string key);
+
+		//IDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(string key);
+
 		#endregion Get methods
 	}
 
 	#endregion Supporting interfaces
+
+	#region Bound collection classes
+
+	public class SettingsStoreBoundList<T> : ObservableCollection<T>
+	{
+		private ISettingsStore store;
+		private string key;
+
+		public SettingsStoreBoundList(ISettingsStore store, string key)
+			: base(GetItems(store, key))
+		{
+			this.store = store;
+			this.key = key;
+		}
+
+		protected override void ClearItems()
+		{
+			base.ClearItems();
+			store.Set(key, this.ToArray());
+		}
+
+		protected override void InsertItem(int index, T item)
+		{
+			base.InsertItem(index, item);
+			store.Set(key, this.ToArray());
+		}
+
+		protected override void MoveItem(int oldIndex, int newIndex)
+		{
+			base.MoveItem(oldIndex, newIndex);
+			store.Set(key, this.ToArray());
+		}
+
+		protected override void RemoveItem(int index)
+		{
+			base.RemoveItem(index);
+			store.Set(key, this.ToArray());
+		}
+
+		protected override void SetItem(int index, T item)
+		{
+			base.SetItem(index, item);
+			store.Set(key, this.ToArray());
+		}
+
+		private static IEnumerable<T> GetItems(ISettingsStore store, string key)
+		{
+			if (typeof(T) == typeof(string)) return store.GetStringArray(key).Cast<T>();
+			if (typeof(T) == typeof(int)) return store.GetIntArray(key).Cast<T>();
+			if (typeof(T) == typeof(long)) return store.GetLongArray(key).Cast<T>();
+			if (typeof(T) == typeof(double)) return store.GetDoubleArray(key).Cast<T>();
+			if (typeof(T) == typeof(bool)) return store.GetBoolArray(key).Cast<T>();
+			if (typeof(T) == typeof(DateTime)) return store.GetDateTimeArray(key).Cast<T>();
+			if (typeof(T) == typeof(TimeSpan)) return store.GetTimeSpanArray(key).Cast<T>();
+			throw new NotSupportedException("The list item type " + typeof(T).Name + " is not supported.");
+		}
+	}
+
+	#endregion Bound collection classes
 }

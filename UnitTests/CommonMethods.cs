@@ -201,7 +201,7 @@ namespace UnitTests
 		{
 			Assert.AreEqual("", settings.LastStartedAppVersion);
 			Assert.AreEqual("de-DE", settings.Culture);
-			Assert.AreEqual(0, settings.RecentlyLoadedFiles.Length);
+			Assert.AreEqual(0, settings.RecentlyLoadedFiles.Count);
 			Assert.AreEqual(0, settings.TestNumbers.Length);
 			Assert.AreEqual(false, settings.IsSoundEnabled);
 
@@ -214,7 +214,8 @@ namespace UnitTests
 		{
 			settings.LastStartedAppVersion = "1.2.3";
 			settings.Culture = "en-GB";
-			settings.RecentlyLoadedFiles = new string[] { "Abc", "def" };
+			settings.RecentlyLoadedFiles.Add("Abc");
+			settings.RecentlyLoadedFiles.Add("def");
 			settings.TestNumbers = new int[] { 4, 32, 0 };
 			settings.IsSoundEnabled = true;
 
@@ -227,7 +228,7 @@ namespace UnitTests
 		{
 			Assert.AreEqual("1.2.3", settings.LastStartedAppVersion);
 			Assert.AreEqual("en-GB", settings.Culture);
-			Assert.AreEqual(2, settings.RecentlyLoadedFiles.Length);
+			Assert.AreEqual(2, settings.RecentlyLoadedFiles.Count);
 			Assert.AreEqual("Abc", settings.RecentlyLoadedFiles[0]);
 			Assert.AreEqual("def", settings.RecentlyLoadedFiles[1]);
 			Assert.AreEqual(3, settings.TestNumbers.Length);

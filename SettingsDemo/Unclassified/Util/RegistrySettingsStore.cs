@@ -735,6 +735,16 @@ namespace Unclassified.Util
 			return collection;
 		}
 
+		public IList<T> CreateList<T>(string key)
+		{
+			lock (syncLock)
+			{
+				if (isDisposed) throw new ObjectDisposedException("");
+
+				return new SettingsStoreBoundList<T>(this, key);
+			}
+		}
+
 		#endregion Read access
 
 		#region Helper methods

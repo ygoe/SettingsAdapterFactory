@@ -26,6 +26,7 @@ namespace UnitTests
 			using (var store = new FileSettingsStore("setget.conf"))
 			{
 				CommonMethods.Set1(store);
+				CommonMethods.GetTest1(store);
 			}
 			using (var store = new FileSettingsStore("setget.conf"))
 			{
@@ -34,6 +35,7 @@ namespace UnitTests
 			using (var store = new FileSettingsStore("setget.conf"))
 			{
 				CommonMethods.Set2(store);
+				CommonMethods.GetTest2(store);
 			}
 			using (var store = new FileSettingsStore("setget.conf"))
 			{
@@ -51,6 +53,12 @@ namespace UnitTests
 				Assert.IsNotNull(settings);
 				CommonMethods.AdapterEmptyDefault(settings);
 				CommonMethods.AdapterSet(settings);
+				CommonMethods.AdapterGetTest(settings);
+			}
+			using (var store = new FileSettingsStore("adapter.conf"))
+			{
+				IAppSettings settings = SettingsAdapterFactory.New<IAppSettings>(store);
+				Assert.IsNotNull(settings);
 				CommonMethods.AdapterGetTest(settings);
 			}
 		}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Unclassified.Util;
 
@@ -53,7 +54,7 @@ namespace SettingsDemo
 		/// Gets or sets an array containing the recently loaded files. The most recently loaded
 		/// entry is first.
 		/// </summary>
-		string[] RecentlyLoadedFiles { get; set; }
+		IList<string> RecentlyLoadedFiles { get; }
 
 		/// <summary>
 		/// Gets or sets some numbers.
@@ -138,7 +139,7 @@ namespace SettingsDemo
 		/// </summary>
 		[Description("Local system")]
 		Local,
-		
+
 		/// <summary>
 		/// Local time as on the remote system.
 		/// </summary>
