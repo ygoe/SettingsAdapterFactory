@@ -107,6 +107,11 @@ namespace Unclassified.Util
 		private string password;
 
 		/// <summary>
+		/// Indicates whether there was a problem reading the file on loading.
+		/// </summary>
+		private bool hadProblem;
+
+		/// <summary>
 		/// Indicates whether the instance has already been disposed.
 		/// </summary>
 		private bool isDisposed;
@@ -172,6 +177,50 @@ namespace Unclassified.Util
 		}
 
 		#endregion Constructors
+
+		#region Public properties
+
+		/// <summary>
+		/// Gets the file name of the currently used setting file.
+		/// </summary>
+		public string FileName
+		{
+			get { return fileName; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the instance is read-only.
+		/// </summary>
+		public bool IsReadOnly
+		{
+			get { return readOnly; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the current settings file is encrypted.
+		/// </summary>
+		public bool IsEncrypted
+		{
+			get { return !string.IsNullOrEmpty(password); }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether there was a problem reading the file on loading.
+		/// </summary>
+		public bool HadProblem
+		{
+			get { return hadProblem; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the instance is disposed.
+		/// </summary>
+		public bool IsDisposed
+		{
+			get { return isDisposed; }
+		}
+
+		#endregion Public properties
 
 		#region Write access
 
@@ -1022,6 +1071,7 @@ namespace Unclassified.Util
 					{
 						HandleBrokenFile(ex);
 					}
+					hadProblem = true;
 
 					// Try and use the backup file (once) if the file wasn't loaded
 					string backupFileName = fileName + ".bak";

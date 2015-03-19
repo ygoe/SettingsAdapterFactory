@@ -86,6 +86,37 @@ namespace Unclassified.Util
 		}
 
 		#endregion Window state handling
+
+		#region ISettingsStore extension methods
+
+		/// <summary>
+		/// Gets the display name of the storage location for an <see cref="ISettingsStore"/>
+		/// instance. This includes optional flags.
+		/// </summary>
+		/// <param name="settingsStore">The settings store instance of which to return the location.</param>
+		/// <returns></returns>
+		public static string GetLocationDisplayName(this ISettingsStore settingsStore)
+		{
+			if (settingsStore == null) throw new ArgumentNullException("settingsStore");
+
+			FileSettingsStore fileStore = settingsStore as FileSettingsStore;
+			if (fileStore != null)
+			{
+				return fileStore.FileName +
+					(fileStore.IsReadOnly ? " [RO]" : "") +
+					(fileStore.IsEncrypted ? " [ENC]" : "");
+			}
+			RegistrySettingsStore registryStore = settingsStore as RegistrySettingsStore;
+			if (registryStore != null)
+			{
+				return (registryStore.IsGlobal ? "HKEY_LOCAL_MACHINE" : "HKEY_CURRENT_USER") +
+					"\\" + registryStore.BaseKey +
+					(registryStore.IsReadOnly ? " [RO]" : "");
+			}
+			return settingsStore.ToString();
+		}
+
+		#endregion ISettingsStore extension methods
 	}
 
 	#region Window state settings interface

@@ -80,6 +80,42 @@ namespace Unclassified.Util
 
 		#endregion Constructors
 
+		#region Public properties
+
+		/// <summary>
+		/// Gets a value indicating whether the settings are stored for all users.
+		/// </summary>
+		public bool IsGlobal
+		{
+			get { return isGlobal; }
+		}
+
+		/// <summary>
+		/// Gets the base registry key for the current instance.
+		/// </summary>
+		public string BaseKey
+		{
+			get { return baseKey; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the instance is read-only.
+		/// </summary>
+		public bool IsReadOnly
+		{
+			get { return readOnly; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the instance is disposed.
+		/// </summary>
+		public bool IsDisposed
+		{
+			get { return isDisposed; }
+		}
+
+		#endregion Public properties
+
 		#region Write access
 
 		/// <summary>
