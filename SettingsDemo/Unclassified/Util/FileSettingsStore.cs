@@ -303,7 +303,7 @@ namespace Unclassified.Util
 		/// Removes a setting key from the settings store.
 		/// </summary>
 		/// <param name="key">The setting key to remove.</param>
-		/// <returns>true if the value was deleted, false if it did not exist.</returns>
+		/// <returns>true if the key was removed, false if it did not exist.</returns>
 		public bool Remove(string key)
 		{
 			lock (syncLock)

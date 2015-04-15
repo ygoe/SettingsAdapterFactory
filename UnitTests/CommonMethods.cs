@@ -249,5 +249,24 @@ namespace UnitTests
 			Assert.AreEqual(TimeType.Utc, settings.View.TimeType);
 			Assert.AreEqual(20, settings.View.IndentSize);
 		}
+
+		public static void RemovePattern(ISettingsStore store)
+		{
+			int count = store.GetKeys().Length;
+			store.Set("pattern1", 1);
+			store.Set("pattern2", 2);
+			store.Set("pattern3", 3);
+			store.Set("pattern4", 4);
+			store.Set("pattern5", 5);
+			store.RemovePattern(@"^pattern[1-3]");
+			int count2 = store.GetKeys().Length;
+
+			Assert.AreEqual(count + 2, count2, "Unexpected number of keys after removing with pattern");
+			Assert.IsFalse(store.GetKeys().Contains("pattern1"));
+			Assert.IsFalse(store.GetKeys().Contains("pattern2"));
+			Assert.IsFalse(store.GetKeys().Contains("pattern3"));
+			Assert.IsTrue(store.GetKeys().Contains("pattern4"));
+			Assert.IsTrue(store.GetKeys().Contains("pattern5"));
+		}
 	}
 }

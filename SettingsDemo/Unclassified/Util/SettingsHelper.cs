@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace Unclassified.Util
@@ -114,6 +115,28 @@ namespace Unclassified.Util
 					(registryStore.IsReadOnly ? " [RO]" : "");
 			}
 			return settingsStore.ToString();
+		}
+
+		/// <summary>
+		/// Removes multiple setting keys from the settings store, matching a regular expression
+		/// pattern.
+		/// </summary>
+		/// <param name="settingsStore">The settings store instance in which to remove keys.</param>
+		/// <param name="keyRegex">The Regex pattern of the setting keys to remove.</param>
+		/// <returns>true if any key was removed, false if none existed or matched.</returns>
+		public static bool RemovePattern(this ISettingsStore settingsStore, string keyRegex)
+		{
+			if (settingsStore == null) throw new ArgumentNullException("settingsStore");
+
+			bool anyRemoved = false;
+			foreach (string key in settingsStore.GetKeys())
+			{
+				if (Regex.IsMatch(key, keyRegex))
+				{
+					anyRemoved |= settingsStore.Remove(key);
+				}
+			}
+			return anyRemoved;
 		}
 
 		#endregion ISettingsStore extension methods

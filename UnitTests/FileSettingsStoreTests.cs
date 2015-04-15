@@ -62,5 +62,15 @@ namespace UnitTests
 				CommonMethods.AdapterGetTest(settings);
 			}
 		}
+		
+		[TestMethod]
+		public void FileSettingsStoreRemovePattern()
+		{
+			File.Delete("pattern.conf");
+			using (var store = new FileSettingsStore("pattern.conf"))
+			{
+				CommonMethods.RemovePattern(store);
+			}
+		}
 	}
 }
