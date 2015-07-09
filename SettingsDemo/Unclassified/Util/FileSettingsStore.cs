@@ -232,7 +232,7 @@ namespace Unclassified.Util
 		private void CheckType(object newValue)
 		{
 			// Unpack enum value
-			// TODO: This doesn't handle arrays of enums
+			// NOTE: This doesn't handle arrays of enums
 			if (newValue.GetType().IsEnum)
 			{
 				newValue = Convert.ChangeType(newValue, newValue.GetType().GetEnumUnderlyingType());

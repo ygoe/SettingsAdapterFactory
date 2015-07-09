@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Windows;
@@ -242,6 +243,36 @@ namespace Unclassified.UI
 
 		#endregion Property access methods
 
+		#region View state
+
+		private ExpandoObject viewState = new ExpandoObject();
+
+		/// <summary>
+		/// Gets a dynamic object that can be used by the view to save its view state.
+		/// </summary>
+		public dynamic ViewState
+		{
+			get { return viewState; }
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the view state is not empty.
+		/// </summary>
+		protected bool HasViewState
+		{
+			get { return ((IDictionary<string, object>) ViewState).Count > 0; }
+		}
+
+		/// <summary>
+		/// Clears all data from the view state.
+		/// </summary>
+		protected void ClearViewState()
+		{
+			((IDictionary<string, object>) ViewState).Clear();
+		}
+
+		#endregion
+
 		#region Data input cleanup
 
 		/// <summary>
@@ -390,12 +421,12 @@ namespace Unclassified.UI
 					validationPending = true;
 					Dispatcher.CurrentDispatcher.BeginInvoke(
 						(Action) delegate
-							{
-								// Reset flag first (there's no locking)
-								validationPending = false;
-								OnPropertyChanged("Errors");
-								OnPropertyChanged("HasErrors");
-							},
+						{
+							// Reset flag first (there's no locking)
+							validationPending = false;
+							OnPropertyChanged("Errors");
+							OnPropertyChanged("HasErrors");
+						},
 						DispatcherPriority.Loaded);
 				}
 			}
