@@ -43,8 +43,8 @@ namespace Unclassified.Util
 	/// </para>
 	/// <para>
 	///   Trying to read a setting value with an incompatible type, e. g. reading the string value
-	///   "abc" with the <see cref="GetInt"/> method, will cause no value to be returned. If a
-	///   fallback value is provided, this will be returned instead. Accessing a value with the
+	///   "abc" with the <see cref="GetInt(string)"/> method, will cause no value to be returned. If
+	///   a fallback value is provided, this will be returned instead. Accessing a value with the
 	///   wrong method has the same behaviour as if the key was not there at all.
 	/// </para>
 	/// <para>
@@ -94,6 +94,13 @@ namespace Unclassified.Util
 		/// DelayedCall to save the settings back to the file.
 		/// </summary>
 		private DelayedCall saveDc;
+
+		/// <summary>
+		/// Indicates whether a Save operation is still waiting for the lock. saveDc.IsWaiting will
+		/// already return false because the Save method has already been called but is currently
+		/// blocked.
+		/// </summary>
+		private bool savePending;
 
 		/// <summary>
 		/// Indicates whether the settings file was opened in read-only mode. This prevents any
@@ -231,8 +238,22 @@ namespace Unclassified.Util
 		/// <param name="newValue">The value to check.</param>
 		private void CheckType(object newValue)
 		{
+			// TODO: Enum and Array handling should not be done here but only in the code generation of SettingsAdapterFactory (see also Set method below)
+			// Unpack array value (for enums)
+			if (newValue.GetType().IsArray)
+			{
+				Type elementType = newValue.GetType().GetElementType();
+				if (elementType == typeof(int))
+				{
+					newValue = 0;
+				}
+				else if (elementType == typeof(long))
+				{
+					newValue = 0L;
+				}
+			}
+
 			// Unpack enum value
-			// NOTE: This doesn't handle arrays of enums
 			if (newValue.GetType().IsEnum)
 			{
 				newValue = Convert.ChangeType(newValue, newValue.GetType().GetEnumUnderlyingType());
@@ -295,6 +316,7 @@ namespace Unclassified.Util
 					OnPropertyChanged(key);
 
 					saveDc.Reset();
+					savePending = true;
 				}
 			}
 		}
@@ -317,6 +339,7 @@ namespace Unclassified.Util
 					OnPropertyChanged(key);
 
 					saveDc.Reset();
+					savePending = true;
 					return true;
 				}
 				return false;
@@ -347,6 +370,7 @@ namespace Unclassified.Util
 					OnPropertyChanged(newKey);
 
 					saveDc.Reset();
+					savePending = true;
 					return true;
 				}
 				return false;
@@ -1135,7 +1159,7 @@ namespace Unclassified.Util
 				if (isDisposed) throw new ObjectDisposedException("");
 				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
-				if (saveDc.IsDisposed || saveDc.IsWaiting)
+				if (saveDc.IsDisposed || saveDc.IsWaiting || savePending)
 				{
 					saveDc.Cancel();
 					Save();
@@ -1150,6 +1174,7 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
+				savePending = false;
 				if (isDisposed) return;
 				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
@@ -1468,8 +1493,8 @@ namespace Unclassified.Util
 		/// <param name="exception">The exception object that was raised.</param>
 		public SettingsFileErrorEventArgs(string fileName, Exception exception)
 		{
-			this.FileName = fileName;
-			this.Exception = exception;
+			FileName = fileName;
+			Exception = exception;
 		}
 
 		/// <summary>
