@@ -6,7 +6,6 @@
 using System;
 using System.Drawing;
 using System.Linq;
-using System.Windows;
 using System.Windows.Forms;
 
 namespace Unclassified.Util
@@ -69,6 +68,13 @@ namespace Unclassified.Util
 
 		#endregion Window state handling
 
+		#region Color string conversion
+
+		/// <summary>
+		/// Converts a <see cref="Color"/> value to a string for a settings string property.
+		/// </summary>
+		/// <param name="color">The color to convert.</param>
+		/// <returns>A hexadecimal color representation.</returns>
 		public static string ColorToString(Color color)
 		{
 			return "#" + (color.A != 255 ? color.A.ToString("x2") : "") +
@@ -77,6 +83,11 @@ namespace Unclassified.Util
 				color.B.ToString("x2");
 		}
 
+		/// <summary>
+		/// Converts a hexadecimal or decimal color string to a <see cref="Color"/> value.
+		/// </summary>
+		/// <param name="str">The string to convert.</param>
+		/// <returns>A <see cref="Color"/> value.</returns>
 		public static Color StringToColor(string str)
 		{
 			if (str.StartsWith("#"))
@@ -92,5 +103,7 @@ namespace Unclassified.Util
 				(byte) ((value >> 8) & 0xff),
 				(byte) (value & 0xff));
 		}
+
+		#endregion Color string conversion
 	}
 }

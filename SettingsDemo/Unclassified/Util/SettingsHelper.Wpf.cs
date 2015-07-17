@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media;
 
 namespace Unclassified.Util
 {
@@ -60,5 +61,43 @@ namespace Unclassified.Util
 		}
 
 		#endregion Window state handling
+
+		#region Color string conversion
+
+		/// <summary>
+		/// Converts a <see cref="Color"/> value to a string for a settings string property.
+		/// </summary>
+		/// <param name="color">The color to convert.</param>
+		/// <returns>A hexadecimal color representation.</returns>
+		public static string ColorToString(Color color)
+		{
+			return "#" + (color.A != 255 ? color.A.ToString("x2") : "") +
+				color.R.ToString("x2") +
+				color.G.ToString("x2") +
+				color.B.ToString("x2");
+		}
+
+		/// <summary>
+		/// Converts a hexadecimal or decimal color string to a <see cref="Color"/> value.
+		/// </summary>
+		/// <param name="str">The string to convert.</param>
+		/// <returns>A <see cref="Color"/> value.</returns>
+		public static Color StringToColor(string str)
+		{
+			if (str.StartsWith("#"))
+				str = str.Substring(1);
+			if (str.Length != 6 && str.Length != 8)
+				throw new FormatException("Invalid 6- or 8-digit hexadecimal color value.");
+			long value = long.Parse(str, System.Globalization.NumberStyles.AllowHexSpecifier);
+			if (str.Length == 6)
+				value |= 0xff000000;
+			return Color.FromArgb(
+				(byte) ((value >> 24) & 0xff),
+				(byte) ((value >> 16) & 0xff),
+				(byte) ((value >> 8) & 0xff),
+				(byte) (value & 0xff));
+		}
+
+		#endregion Color string conversion
 	}
 }

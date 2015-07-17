@@ -56,7 +56,7 @@ namespace Unclassified.Util
 					directory = "." + directory;
 					break;
 			}
-            return Path.Combine(baseDir, directory, fileName);
+			return Path.Combine(baseDir, directory, fileName);
 		}
 
 		/// <summary>
@@ -117,7 +117,7 @@ namespace Unclassified.Util
 			}
 			FileSettingsStore store = new FileSettingsStore(path);
 			return SettingsAdapterFactory.New<TSettings>(store);
-        }
+		}
 
 		#endregion Settings file path methods
 

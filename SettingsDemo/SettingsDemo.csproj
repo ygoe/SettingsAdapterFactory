@@ -87,7 +87,7 @@
     <Compile Include="Unclassified\Util\PropertyExtensions.cs" />
     <Compile Include="Unclassified\Util\RegistrySettingsStore.cs" />
     <Compile Include="Unclassified\Util\SettingsAdapterFactory.cs" />
-    <Compile Include="Unclassified\Util\SettingsHelper.Forms.cs" />
+    <None Include="Unclassified\Util\SettingsHelper.Forms.cs" />
     <Compile Include="Unclassified\Util\SettingsHelper.Wpf.cs" />
     <Compile Include="Unclassified\Util\SettingsHelper.cs" />
     <Compile Include="Unclassified\Util\StringExtensions.cs" />
