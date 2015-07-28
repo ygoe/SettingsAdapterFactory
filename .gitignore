@@ -1,6 +1,7 @@
 # Project-specific files
 
 # User-specific files
+.vs/
 *.suo
 *.user
 *.sln.docstates
