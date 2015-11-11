@@ -268,6 +268,8 @@ namespace Unclassified.Util
 				newValue is long[] ||
 				newValue is double ||
 				newValue is double[] ||
+				newValue is decimal ||
+				newValue is decimal[] ||
 				newValue is bool ||
 				newValue is bool[] ||
 				newValue is DateTime ||
@@ -465,8 +467,7 @@ namespace Unclassified.Util
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
-				if (data is bool[]) return data as bool[];
-				return new bool[0];
+				return data as bool[] ?? new bool[0];
 			}
 		}
 
@@ -524,8 +525,7 @@ namespace Unclassified.Util
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
-				if (data is int[]) return data as int[];
-				return new int[0];
+				return data as int[] ?? new int[0];
 			}
 		}
 
@@ -583,8 +583,7 @@ namespace Unclassified.Util
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
-				if (data is long[]) return data as long[];
-				return new long[0];
+				return data as long[] ?? new long[0];
 			}
 		}
 
@@ -642,8 +641,65 @@ namespace Unclassified.Util
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
-				if (data is double[]) return data as double[];
-				return new double[0];
+				return data as double[] ?? new double[0];
+			}
+		}
+
+		/// <summary>
+		/// Gets the current decimal value of a setting key, or 0 if the key is unset or has an
+		/// incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public decimal GetDecimal(string key)
+		{
+			return GetDecimal(key, 0m);
+		}
+
+		/// <summary>
+		/// Gets the current decimal value of a setting key, or a fallback value if the key is unset
+		/// or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <param name="fallbackValue">The fallback value to return if the key is unset.</param>
+		/// <returns></returns>
+		public decimal GetDecimal(string key, decimal fallbackValue)
+		{
+			lock (syncLock)
+			{
+				if (isDisposed) throw new ObjectDisposedException("");
+
+				object data = null;
+				if (store.ContainsKey(key)) data = store[key];
+
+				if (data == null) return fallbackValue;
+				try
+				{
+					return Convert.ToDecimal(data, CultureInfo.InvariantCulture);
+				}
+				catch (FormatException)
+				{
+					return fallbackValue;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Gets the current decimal[] value of a setting key, or an empty array if the key is unset
+		/// or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public decimal[] GetDecimalArray(string key)
+		{
+			lock (syncLock)
+			{
+				if (isDisposed) throw new ObjectDisposedException("");
+
+				object data = null;
+				if (store.ContainsKey(key)) data = store[key];
+
+				return data as decimal[] ?? new decimal[0];
 			}
 		}
 
@@ -999,6 +1055,23 @@ namespace Unclassified.Util
 									}
 									store.Add(key, list.ToArray());
 								}
+								else if (type == "decimal")
+								{
+									store.Add(key, decimal.Parse(xn.InnerText, CultureInfo.InvariantCulture));
+								}
+								else if (type == "decimal[]" ||
+									type == "decimal-array")
+								{
+									List<decimal> list = new List<decimal>();
+									foreach (XmlNode itemNode in xn.SelectNodes("item"))
+									{
+										if (itemNode.InnerText == "")
+											list.Add(0m);
+										else
+											list.Add(decimal.Parse(itemNode.InnerText, CultureInfo.InvariantCulture));
+									}
+									store.Add(key, list.ToArray());
+								}
 								else if (type == "bool")
 								{
 									if (xn.InnerText.ToString().Trim() == "1" ||
@@ -1268,6 +1341,26 @@ namespace Unclassified.Util
 						xn.Attributes.Append(xa);
 						double[] da = (double[]) store[key];
 						foreach (double d in da)
+						{
+							XmlNode itemNode = xdoc.CreateElement("item");
+							itemNode.InnerText = d.ToString(CultureInfo.InvariantCulture);
+							xn.AppendChild(itemNode);
+						}
+					}
+					else if (store[key] is decimal)
+					{
+						xa = xdoc.CreateAttribute("type");
+						xa.Value = "decimal";
+						xn.Attributes.Append(xa);
+						xn.InnerText = GetDecimal(key).ToString(CultureInfo.InvariantCulture);
+					}
+					else if (store[key] is decimal[])
+					{
+						xa = xdoc.CreateAttribute("type");
+						xa.Value = "decimal[]";
+						xn.Attributes.Append(xa);
+						decimal[] da = (decimal[])store[key];
+						foreach (decimal d in da)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
 							itemNode.InnerText = d.ToString(CultureInfo.InvariantCulture);

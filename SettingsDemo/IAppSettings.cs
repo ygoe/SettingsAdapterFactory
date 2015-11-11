@@ -67,6 +67,12 @@ namespace SettingsDemo
 		int[] TestNumbers { get; set; }
 
 		/// <summary>
+		/// Gets or sets a decimal number.
+		/// </summary>
+		[DefaultValue("12")]
+		decimal DecimalNumber { get; set; }
+
+		/// <summary>
 		/// Gets or sets a value indicating whether a sound is played on new items.
 		/// </summary>
 		bool IsSoundEnabled { get; set; }

@@ -140,6 +140,8 @@ namespace Unclassified.Util
 				newValue is long[] ||
 				newValue is double ||
 				newValue is double[] ||
+				newValue is decimal ||
+				newValue is decimal[] ||
 				newValue is bool ||
 				newValue is bool[] ||
 				newValue is DateTime ||
@@ -233,6 +235,18 @@ namespace Unclassified.Util
 					{
 						kind = RegistryValueKind.String;
 						newValue = ((double[]) newValue)
+							.Select(i => i.ToString(CultureInfo.InvariantCulture))
+							.Aggregate((a, b) => a + "," + b);
+					}
+					else if (newValue is decimal)
+					{
+						kind = RegistryValueKind.String;
+						newValue = ((decimal)newValue).ToString(CultureInfo.InvariantCulture);
+					}
+					else if (newValue is decimal[])
+					{
+						kind = RegistryValueKind.String;
+						newValue = ((decimal[])newValue)
 							.Select(i => i.ToString(CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
@@ -618,6 +632,56 @@ namespace Unclassified.Util
 			return data.ToString()
 				.Split(',')
 				.Select(_ => Convert.ToDouble(_, CultureInfo.InvariantCulture))
+				.ToArray();
+		}
+
+		/// <summary>
+		/// Gets the current decimal value of a setting key, or 0 if the key is unset or has an
+		/// incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public decimal GetDecimal(string key)
+		{
+			return GetDecimal(key, 0m);
+		}
+
+		/// <summary>
+		/// Gets the current decimal value of a setting key, or a fallback value if the key is unset
+		/// or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <param name="fallbackValue">The fallback value to return if the key is unset.</param>
+		/// <returns></returns>
+		public decimal GetDecimal(string key, decimal fallbackValue)
+		{
+			object data = Get(key);
+
+			if (data == null) return fallbackValue;
+			try
+			{
+				return Convert.ToDecimal(data, CultureInfo.InvariantCulture);
+			}
+			catch (FormatException)
+			{
+				return fallbackValue;
+			}
+		}
+
+		/// <summary>
+		/// Gets the current decimal[] value of a setting key, or an empty array if the key is unset
+		/// or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		public decimal[] GetDecimalArray(string key)
+		{
+			object data = Get(key);
+
+			if (data == null) return new decimal[0];
+			return data.ToString()
+				.Split(',')
+				.Select(_ => Convert.ToDecimal(_, CultureInfo.InvariantCulture))
 				.ToArray();
 		}
 

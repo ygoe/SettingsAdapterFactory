@@ -85,6 +85,7 @@ namespace Unclassified.Util
 			}
 
 			// DEBUG: Enable the following code to verify the assembly with peverify.exe from the .NET command prompt.
+			// NOTE: Writing the assembly to a file doesn't work with the plugin demo because the written file can't be modified during runtime.
 			//string fileName = assemblyBuilder.GetName().Name + ".dll";
 			//System.IO.File.Delete(fileName);
 			//assemblyBuilder.Save(fileName);
@@ -720,6 +721,15 @@ namespace Unclassified.Util
 			{
 				storeGetMethod = MethodOf(() => default(ISettingsStore).GetDoubleArray(default(string)));
 			}
+			else if (propType == typeof(decimal))
+			{
+				storeGetMethod = MethodOf(() => default(ISettingsStore).GetDecimal(default(string)));
+				storeGetMethodWithDefault = MethodOf(() => default(ISettingsStore).GetDecimal(default(string), default(decimal)));
+			}
+			else if (propType == typeof(decimal[]))
+			{
+				storeGetMethod = MethodOf(() => default(ISettingsStore).GetDecimalArray(default(string)));
+			}
 			else if (propType == typeof(string))
 			{
 				storeGetMethod = MethodOf(() => default(ISettingsStore).GetString(default(string)));
@@ -795,6 +805,21 @@ namespace Unclassified.Util
 				else if (propType == typeof(double))
 				{
 					ilGen.Emit(OpCodes.Ldc_R8, Convert.ToDouble(defAttr.Value, CultureInfo.InvariantCulture));
+				}
+				else if (propType == typeof(decimal))
+				{
+					decimal d = Convert.ToDecimal(defAttr.Value, CultureInfo.InvariantCulture);
+					// Source: https://msdn.microsoft.com/en-us/library/bb1c1a6x.aspx
+					var bits = decimal.GetBits(d);
+					bool sign = (bits[3] & 0x80000000) != 0;
+					byte scale = (byte)((bits[3] >> 16) & 0x7f);
+					ilGen.Emit(OpCodes.Ldc_I4, bits[0]);
+					ilGen.Emit(OpCodes.Ldc_I4, bits[1]);
+					ilGen.Emit(OpCodes.Ldc_I4, bits[2]);
+					ilGen.Emit(sign ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+					ilGen.Emit(OpCodes.Ldc_I4, (int)scale);
+					var ctor = typeof(decimal).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(byte) });
+					ilGen.Emit(OpCodes.Newobj, ctor);
 				}
 				else if (propType == typeof(string))
 				{
@@ -1265,6 +1290,31 @@ namespace Unclassified.Util
 		double[] GetDoubleArray(string key);
 
 		/// <summary>
+		/// Gets the current decimal value of a setting key, or 0 if the key is unset or has an
+		/// incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		decimal GetDecimal(string key);
+
+		/// <summary>
+		/// Gets the current decimal value of a setting key, or a fallback value if the key is unset
+		/// or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <param name="fallbackValue">The fallback value to return if the key is unset.</param>
+		/// <returns></returns>
+		decimal GetDecimal(string key, decimal fallbackValue);
+
+		/// <summary>
+		/// Gets the current decimal[] value of a setting key, or an empty array if the key is unset
+		/// or has an incompatible data type.
+		/// </summary>
+		/// <param name="key">The setting key.</param>
+		/// <returns></returns>
+		decimal[] GetDecimalArray(string key);
+
+		/// <summary>
 		/// Gets the current string value of a setting key, or "" if the key is unset.
 		/// </summary>
 		/// <param name="key">The setting key.</param>
@@ -1416,6 +1466,7 @@ namespace Unclassified.Util
 			if (typeof(T) == typeof(int)) return store.GetIntArray(key).Cast<T>();
 			if (typeof(T) == typeof(long)) return store.GetLongArray(key).Cast<T>();
 			if (typeof(T) == typeof(double)) return store.GetDoubleArray(key).Cast<T>();
+			if (typeof(T) == typeof(decimal)) return store.GetDecimalArray(key).Cast<T>();
 			if (typeof(T) == typeof(bool)) return store.GetBoolArray(key).Cast<T>();
 			if (typeof(T) == typeof(DateTime)) return store.GetDateTimeArray(key).Cast<T>();
 			if (typeof(T) == typeof(TimeSpan)) return store.GetTimeSpanArray(key).Cast<T>();

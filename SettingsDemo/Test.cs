@@ -77,11 +77,25 @@ namespace SettingsDemo
 			settings.TestNumbers = settings.TestNumbers.Concat(new[] { 13, 21, 34 }).ToArray();
 			Debug.Assert(settings.TestNumbers.Select(_ => _.ToString()).Aggregate((a, b) => a + ", " + b) == "1, 2, 3, 5, 8, 13, 21, 34");
 			Debug.Assert(settings.TestNumbersSum() == 87);
+
+			Debug.Assert(settings.DecimalNumber == 12m);
+
+			settings.DecimalNumber = decimal.MinValue;
+			Debug.Assert(settings.DecimalNumber == decimal.MinValue);
+
+			settings.DecimalNumber = decimal.MaxValue;
+			Debug.Assert(settings.DecimalNumber == decimal.MaxValue);
+
+			settings.DecimalNumber = 0m;
+			Debug.Assert(settings.DecimalNumber == 0m);
+
+			settings.DecimalNumber = 1234.56m;
+			Debug.Assert(settings.DecimalNumber == 1234.56m);
 		}
 
-		private void settings_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		private void settings_PropertyChanged(object sender, PropertyChangedEventArgs args)
 		{
-			changeAction(e);
+			changeAction(args);
 		}
 	}
 }
