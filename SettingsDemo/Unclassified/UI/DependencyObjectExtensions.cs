@@ -44,13 +44,13 @@ namespace Unclassified.UI
 					// Compare the predicate
 					if (predicate(child))
 					{
-						foundChild = (TChild) child;
+						foundChild = (TChild)child;
 					}
 				}
 				else
 				{
 					// Type matches, no predicate given
-					foundChild = (TChild) child;
+					foundChild = (TChild)child;
 				}
 			}
 			return foundChild;
@@ -85,13 +85,13 @@ namespace Unclassified.UI
 					var frameworkElement = child as FrameworkElement;
 					if (frameworkElement != null && frameworkElement.Name == childName)
 					{
-						foundChild = (TChild) child;
+						foundChild = (TChild)child;
 					}
 				}
 				else
 				{
 					// Type matches, no name requested
-					foundChild = (TChild) child;
+					foundChild = (TChild)child;
 				}
 			}
 			return foundChild;
@@ -125,13 +125,13 @@ namespace Unclassified.UI
 					// Compare the predicate
 					if (predicate(child))
 					{
-						foundChildren.Add((TChild) child);
+						foundChildren.Add((TChild)child);
 					}
 				}
 				else
 				{
 					// Type matches, no name requested
-					foundChildren.Add((TChild) child);
+					foundChildren.Add((TChild)child);
 				}
 			}
 			return foundChildren;
@@ -157,7 +157,7 @@ namespace Unclassified.UI
 				if (dep == null) return null;
 			}
 			while (!(dep is TParent) || (predicate != null && !predicate(dep)));
-			return (TParent) dep;
+			return (TParent)dep;
 		}
 	}
 }

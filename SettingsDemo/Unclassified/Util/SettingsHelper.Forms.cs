@@ -46,10 +46,10 @@ namespace Unclassified.Util
 			{
 				if (form.WindowState == FormWindowState.Normal)
 				{
-					settings.Left = (int) form.Bounds.Left;
-					settings.Top = (int) form.Bounds.Top;
-					settings.Width = (int) form.Bounds.Width;
-					settings.Height = (int) form.Bounds.Height;
+					settings.Left = (int)form.Bounds.Left;
+					settings.Top = (int)form.Bounds.Top;
+					settings.Width = (int)form.Bounds.Width;
+					settings.Height = (int)form.Bounds.Height;
 				}
 				settings.IsMaximized = form.WindowState == FormWindowState.Maximized;
 			};
@@ -57,10 +57,21 @@ namespace Unclassified.Util
 			{
 				if (form.WindowState == FormWindowState.Normal)
 				{
-					settings.Left = (int) form.Bounds.Left;
-					settings.Top = (int) form.Bounds.Top;
-					settings.Width = (int) form.Bounds.Width;
-					settings.Height = (int) form.Bounds.Height;
+					settings.Left = (int)form.Bounds.Left;
+					settings.Top = (int)form.Bounds.Top;
+					settings.Width = (int)form.Bounds.Width;
+					settings.Height = (int)form.Bounds.Height;
+				}
+				settings.IsMaximized = form.WindowState == FormWindowState.Maximized;
+			};
+			form.Closed += (sender, args) =>
+			{
+				if (form.WindowState == FormWindowState.Normal)
+				{
+					settings.Left = (int)form.Bounds.Left;
+					settings.Top = (int)form.Bounds.Top;
+					settings.Width = (int)form.Bounds.Width;
+					settings.Height = (int)form.Bounds.Height;
 				}
 				settings.IsMaximized = form.WindowState == FormWindowState.Maximized;
 			};
@@ -98,10 +109,10 @@ namespace Unclassified.Util
 			if (str.Length == 6)
 				value |= 0xff000000;
 			return Color.FromArgb(
-				(byte) ((value >> 24) & 0xff),
-				(byte) ((value >> 16) & 0xff),
-				(byte) ((value >> 8) & 0xff),
-				(byte) (value & 0xff));
+				(byte)((value >> 24) & 0xff),
+				(byte)((value >> 16) & 0xff),
+				(byte)((value >> 8) & 0xff),
+				(byte)(value & 0xff));
 		}
 
 		#endregion Color string conversion

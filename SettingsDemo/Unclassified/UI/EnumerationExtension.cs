@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Markup;
 
 namespace Unclassified.UI
@@ -136,7 +137,7 @@ namespace Unclassified.UI
 		/// <returns></returns>
 		public IEnumerable<EnumerationExtension.EnumerationMember> ProvideTypedValue()
 		{
-			return (EnumerationExtension.EnumerationMember[]) ProvideValue(null);
+			return (EnumerationExtension.EnumerationMember[])ProvideValue(null);
 		}
 
 		/// <summary>
@@ -188,11 +189,13 @@ namespace Unclassified.UI
 			/// <summary>
 			/// Gets or sets the description for the enumeration value.
 			/// </summary>
+			[Obfuscation(Exclude = true)]
 			public string Description { get; set; }
 
 			/// <summary>
 			/// Gets or sets the enumeration value.
 			/// </summary>
+			[Obfuscation(Exclude = true)]
 			public object Value { get; set; }
 
 			/// <summary>
@@ -311,7 +314,7 @@ namespace Unclassified.UI
 		/// <returns></returns>
 		public IEnumerable<EnumerationExtension<T>.EnumerationMember> ProvideTypedValue()
 		{
-			return (EnumerationExtension<T>.EnumerationMember[]) ProvideValue(null);
+			return (EnumerationExtension<T>.EnumerationMember[])ProvideValue(null);
 		}
 
 		/// <summary>
@@ -362,11 +365,13 @@ namespace Unclassified.UI
 			/// <summary>
 			/// Gets or sets the description for the enumeration value.
 			/// </summary>
+			[Obfuscation(Exclude = true)]
 			public string Description { get; set; }
 
 			/// <summary>
 			/// Gets or sets the enumeration value.
 			/// </summary>
+			[Obfuscation(Exclude = true)]
 			public T Value { get; set; }
 
 			/// <summary>

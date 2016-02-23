@@ -13,10 +13,14 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Unclassified.Util;
+
 #if CSHARP50
+
 using System.Runtime.CompilerServices;
+
 #endif
 
 namespace Unclassified.UI
@@ -27,6 +31,7 @@ namespace Unclassified.UI
 	internal abstract class ViewModelBase : INotifyPropertyChanged
 	{
 #if !CSHARP50
+
 		/// <summary>
 		/// Compatibility dummy attribute for C# before 5. This attribute does not backport the
 		/// functionality from later C# versions.
@@ -35,6 +40,7 @@ namespace Unclassified.UI
 		public class CallerMemberNameAttribute : Attribute
 		{
 		}
+
 #endif
 
 		#region Constructor
@@ -116,12 +122,13 @@ namespace Unclassified.UI
 		/// <returns>The current value.</returns>
 		protected T GetValue<T>([CallerMemberName] string propertyName = null)
 		{
-			if (propertyName == null) throw new ArgumentNullException("propertyName");
+			if (propertyName == null)
+				throw new ArgumentNullException("propertyName");
 
 			object value;
 			if (backingFields.TryGetValue(propertyName, out value))
 			{
-				return (T) value;
+				return (T)value;
 			}
 			return default(T);
 		}
@@ -148,7 +155,8 @@ namespace Unclassified.UI
 		/// </remarks>
 		protected bool SetValue<T>(T newValue, [CallerMemberName] string propertyName = null)
 		{
-			if (propertyName == null) throw new ArgumentNullException("propertyName");
+			if (propertyName == null)
+				throw new ArgumentNullException("propertyName");
 
 			if (EqualityComparer<T>.Default.Equals(newValue, GetValue<T>(propertyName)))
 				return false;
@@ -212,7 +220,8 @@ namespace Unclassified.UI
 		/// </remarks>
 		protected bool SetValueSuppressNotify<T>(T newValue, [CallerMemberName] string propertyName = null)
 		{
-			if (propertyName == null) throw new ArgumentNullException("propertyName");
+			if (propertyName == null)
+				throw new ArgumentNullException("propertyName");
 
 			if (EqualityComparer<T>.Default.Equals(newValue, GetValue<T>(propertyName)))
 				return false;
@@ -260,7 +269,7 @@ namespace Unclassified.UI
 		/// </summary>
 		protected bool HasViewState
 		{
-			get { return ((IDictionary<string, object>) ViewState).Count > 0; }
+			get { return ((IDictionary<string, object>)ViewState).Count > 0; }
 		}
 
 		/// <summary>
@@ -268,10 +277,10 @@ namespace Unclassified.UI
 		/// </summary>
 		protected void ClearViewState()
 		{
-			((IDictionary<string, object>) ViewState).Clear();
+			((IDictionary<string, object>)ViewState).Clear();
 		}
 
-		#endregion
+		#endregion View state
 
 		#region Data input cleanup
 
@@ -565,7 +574,7 @@ namespace Unclassified.UI
 #if DEBUG
 			if (!TypeDescriptor.GetProperties(this).OfType<PropertyDescriptor>().Any(d => d.Name == propertyName))
 			{
-				throw new ArgumentException("Notifying a change of non-existing property " + this.GetType().Name + "." + propertyName);
+				throw new ArgumentException("Notifying a change of non-existing property " + GetType().Name + "." + propertyName);
 			}
 #endif
 
@@ -575,7 +584,7 @@ namespace Unclassified.UI
 				changeHandler();
 			}
 
-			// Raise PropertyChanged event, if there is a handler listening to it
+			// Raise PropertyChanged event if there is a handler listening to it
 			var handler = PropertyChanged;
 			if (handler != null)
 			{
@@ -584,7 +593,7 @@ namespace Unclassified.UI
 
 			// Also notify changes for dependent properties
 			// (This could be moved inside the (handler != null) check for improved performance, but
-			// then it could miss out On…Changed method calls for dependent properties, which might
+			// then it could miss out On…Changed method calls for dependent properties which might
 			// be a nice feature.)
 			foreach (var dependentPropertyName in DependentNotifications.GetValuesOrEmpty(propertyName))
 			{
@@ -618,7 +627,7 @@ namespace Unclassified.UI
 			// is no longer a MemberExpression. So this only works for one property per method call.
 
 			// Only do all this work if somebody might listen to it
-			if (this.PropertyChanged != null)
+			if (PropertyChanged != null)
 			{
 				if (selectorExpression == null)
 					throw new ArgumentNullException("selectorExpression");
@@ -660,21 +669,21 @@ namespace Unclassified.UI
 						if (!allDependentNotifications.TryGetValue(GetType(), out dependentNotifications))
 						{
 							dependentNotifications = new CollectionDictionary<string, string>();
-							foreach (var p in GetType().GetProperties())
+							foreach (var prop in GetType().GetProperties().Where(p => !typeof(ICommand).IsAssignableFrom(p.PropertyType)))
 							{
-								foreach (NotifiesOnAttribute a in p.GetCustomAttributes(typeof(NotifiesOnAttribute), false))
+								foreach (NotifiesOnAttribute attr in prop.GetCustomAttributes(typeof(NotifiesOnAttribute), false))
 								{
 									// Verify that the notified property actually exists in the current object. This can
 									// reveal misspelled properties and missing notifications. It's only checked in Debug
 									// builds for performance and stability reasons.
 #if DEBUG
-									if (!TypeDescriptor.GetProperties(this).OfType<PropertyDescriptor>().Any(d => d.Name == a.Name))
+									if (!TypeDescriptor.GetProperties(this).OfType<PropertyDescriptor>().Any(d => d.Name == attr.Name))
 									{
-										throw new ArgumentException("Specified property " + this.GetType().Name + "." + p.Name +
-											" to notify on non-existing property " + a.Name);
+										throw new ArgumentException("Specified property " + GetType().Name + "." + prop.Name +
+											" to notify on non-existing property " + attr.Name);
 									}
 #endif
-									dependentNotifications.Add(a.Name, p.Name);
+									dependentNotifications.Add(attr.Name, prop.Name);
 								}
 							}
 							allDependentNotifications[GetType()] = dependentNotifications;
@@ -688,13 +697,6 @@ namespace Unclassified.UI
 		#endregion Dependent notifications
 
 		#region Property changed handler methods
-
-		/// <summary>
-		/// Contains property changed handlers for all types. This is used to share the reflection
-		/// knowledge of a certain type among all its instances. Access is locked through the field
-		/// itself.
-		/// </summary>
-		private static Dictionary<Type, CollectionDictionary<string, Action>> allPropertyChangedHandlers = new Dictionary<Type, CollectionDictionary<string, Action>>();
 
 		/// <summary>
 		/// Contains all property changed handlers of the current type. This is used for lookup to
@@ -711,40 +713,33 @@ namespace Unclassified.UI
 			{
 				if (propertyChangedHandlers == null)
 				{
-					lock (allPropertyChangedHandlers)
+					propertyChangedHandlers = new CollectionDictionary<string, Action>();
+					foreach (var method in GetType().GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
 					{
-						if (!allPropertyChangedHandlers.TryGetValue(GetType(), out propertyChangedHandlers))
+						var m = method;
+						while (true)
 						{
-							propertyChangedHandlers = new CollectionDictionary<string, Action>();
-							foreach (var method in GetType().GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+							foreach (PropertyChangedHandlerAttribute attr in m.GetCustomAttributes(typeof(PropertyChangedHandlerAttribute), false))
 							{
-								var m = method;
-								while (true)
-								{
-									foreach (PropertyChangedHandlerAttribute a in m.GetCustomAttributes(typeof(PropertyChangedHandlerAttribute), false))
-									{
-										// Verify that the notified property actually exists in the current object. This can
-										// reveal misspelled properties and missing notifications. It's only checked in Debug
-										// builds for performance and stability reasons.
+								// Verify that the notified property actually exists in the current object. This can
+								// reveal misspelled properties and missing notifications. It's only checked in Debug
+								// builds for performance and stability reasons.
 #if DEBUG
-										if (!TypeDescriptor.GetProperties(this).OfType<PropertyDescriptor>().Any(d => d.Name == a.Name))
-										{
-											throw new ArgumentException("Specified method " + this.GetType().Name + "." + m.Name +
-												" to handle changes of non-existing property " + a.Name);
-										}
-#endif
-										Action action = (Action) Delegate.CreateDelegate(typeof(Action), this, m);
-										propertyChangedHandlers.Add(a.Name, action);
-									}
-
-									// Check base methods for the attribute
-									if (!m.IsVirtual) break;
-									var baseMethod = m.GetBaseDefinition();
-									if (baseMethod == m) break;
-									m = baseMethod;
+								if (!TypeDescriptor.GetProperties(this).OfType<PropertyDescriptor>().Any(d => d.Name == attr.Name))
+								{
+									throw new ArgumentException("Specified method " + GetType().Name + "." + m.Name +
+										" to handle changes of non-existing property " + attr.Name);
 								}
+#endif
+								Action action = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
+								propertyChangedHandlers.Add(attr.Name, action);
 							}
-							allPropertyChangedHandlers[GetType()] = propertyChangedHandlers;
+
+							// Check base methods for the attribute
+							if (!m.IsVirtual) break;
+							var baseMethod = m.GetBaseDefinition();
+							if (baseMethod == m) break;
+							m = baseMethod;
 						}
 					}
 				}
@@ -809,7 +804,7 @@ namespace Unclassified.UI
 			ValueViewModel<T> other = obj as ValueViewModel<T>;
 			if (other != null)
 			{
-				return other.Value.Equals(this.Value);
+				return other.Value.Equals(Value);
 			}
 			return false;
 		}
@@ -842,7 +837,8 @@ namespace Unclassified.UI
 		/// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
 		public NotifiesOnAttribute(string propertyName)
 		{
-			if (propertyName == null) throw new ArgumentNullException("propertyName");
+			if (propertyName == null)
+				throw new ArgumentNullException("propertyName");
 			Name = propertyName;
 		}
 
@@ -874,7 +870,8 @@ namespace Unclassified.UI
 		/// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
 		public PropertyChangedHandlerAttribute(string propertyName)
 		{
-			if (propertyName == null) throw new ArgumentNullException("propertyName");
+			if (propertyName == null)
+				throw new ArgumentNullException("propertyName");
 			Name = propertyName;
 		}
 

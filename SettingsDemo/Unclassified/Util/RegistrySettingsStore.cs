@@ -164,8 +164,10 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				if (newValue == null)
 				{
@@ -211,7 +213,7 @@ namespace Unclassified.Util
 					else if (newValue is int[])
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((int[]) newValue)
+						newValue = ((int[])newValue)
 							.Select(i => i.ToString(CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
@@ -222,19 +224,19 @@ namespace Unclassified.Util
 					else if (newValue is long[])
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((long[]) newValue)
+						newValue = ((long[])newValue)
 							.Select(i => i.ToString(CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is double)
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((double) newValue).ToString(CultureInfo.InvariantCulture);
+						newValue = ((double)newValue).ToString(CultureInfo.InvariantCulture);
 					}
 					else if (newValue is double[])
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((double[]) newValue)
+						newValue = ((double[])newValue)
 							.Select(i => i.ToString(CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
@@ -257,38 +259,38 @@ namespace Unclassified.Util
 					else if (newValue is bool[])
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((bool[]) newValue)
+						newValue = ((bool[])newValue)
 							.Select(i => i ? "1" : "0")
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is DateTime)
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((DateTime) newValue).ToString("o", CultureInfo.InvariantCulture);
+						newValue = ((DateTime)newValue).ToString("o", CultureInfo.InvariantCulture);
 					}
 					else if (newValue is DateTime[])
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((DateTime[]) newValue)
+						newValue = ((DateTime[])newValue)
 							.Select(i => i.ToString("o", CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is TimeSpan)
 					{
 						kind = RegistryValueKind.QWord;
-						newValue = ((TimeSpan) newValue).Ticks;
+						newValue = ((TimeSpan)newValue).Ticks;
 					}
 					else if (newValue is TimeSpan[])
 					{
 						kind = RegistryValueKind.String;
-						newValue = ((TimeSpan[]) newValue)
+						newValue = ((TimeSpan[])newValue)
 							.Select(i => i.Ticks.ToString(CultureInfo.InvariantCulture))
 							.Aggregate((a, b) => a + "," + b);
 					}
 					else if (newValue is NameValueCollection)
 					{
 						kind = RegistryValueKind.MultiString;
-						NameValueCollection collection = (NameValueCollection) newValue;
+						NameValueCollection collection = (NameValueCollection)newValue;
 						string[] array = new string[collection.Count * 2];
 						for (int i = 0; i < collection.Count; i++)
 						{
@@ -313,8 +315,10 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				string regKey, regValue;
 				SplitPath(key, baseKey, out regKey, out regValue);
@@ -364,8 +368,10 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				object data = Get(oldKey);
 				if (data != null)
@@ -393,7 +399,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				// Read from registry (recursively)
 				List<string> keys = new List<string>();
@@ -423,7 +430,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				string regKey, regValue;
 				SplitPath(key, baseKey, out regKey, out regValue);
@@ -748,7 +756,7 @@ namespace Unclassified.Util
 			if (data == null) return fallbackValue;
 			try
 			{
-				return DateTime.Parse((string) data, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+				return DateTime.Parse((string)data, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 			}
 			catch (FormatException)
 			{

@@ -15,8 +15,11 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
+
 #if WITH_FIELDLOG
+
 using Unclassified.FieldLog;
+
 #endif
 
 namespace Unclassified.Util
@@ -141,7 +144,7 @@ namespace Unclassified.Util
 		/// </summary>
 		/// <param name="fileName">Name of the settings file to load.</param>
 		/// <param name="password">Encryption password of the settings file.
-		/// Set null to not use encryption.</param>
+		///   Set null to not use encryption.</param>
 		public FileSettingsStore(string fileName, string password)
 			: this(fileName, password, false)
 		{
@@ -152,7 +155,7 @@ namespace Unclassified.Util
 		/// </summary>
 		/// <param name="fileName">Name of the settings file to load.</param>
 		/// <param name="readOnly">true to open the settings file in read-only mode. This prevents
-		/// any write access to the settings and will never save the file back.</param>
+		///   any write access to the settings and will never save the file back.</param>
 		public FileSettingsStore(string fileName, bool readOnly)
 			: this(fileName, null, readOnly)
 		{
@@ -163,9 +166,9 @@ namespace Unclassified.Util
 		/// </summary>
 		/// <param name="fileName">Name of the settings file to load.</param>
 		/// <param name="password">Encryption password of the settings file.
-		/// Set null to not use encryption.</param>
+		///   Set null to not use encryption.</param>
 		/// <param name="readOnly">true to open the settings file in read-only mode. This prevents
-		/// any write access to the settings and will never save the file back.</param>
+		///   any write access to the settings and will never save the file back.</param>
 		public FileSettingsStore(string fileName, string password, bool readOnly)
 		{
 			store = new Dictionary<string, object>();
@@ -292,8 +295,10 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				if (newValue == null)
 				{
@@ -334,8 +339,10 @@ namespace Unclassified.Util
 			{
 				if (store.ContainsKey(key))
 				{
-					if (isDisposed) throw new ObjectDisposedException("");
-					if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+					if (isDisposed)
+						throw new ObjectDisposedException(GetType().FullName);
+					if (readOnly)
+						throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 					store.Remove(key);
 					OnPropertyChanged(key);
@@ -358,8 +365,10 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				if (store.ContainsKey(oldKey))
 				{
@@ -391,7 +400,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				string[] keys = new string[store.Keys.Count];
 				store.Keys.CopyTo(keys, 0);
@@ -408,7 +418,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -438,16 +449,19 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
 				if (data == null) return fallbackValue;
 				if (data.ToString().Trim() == "1" ||
-					data.ToString().Trim().ToLower() == "true") return true;
+					data.ToString().Trim().ToLower() == "true")
+					return true;
 				if (data.ToString().Trim() == "0" ||
-					data.ToString().Trim().ToLower() == "false") return false;
+					data.ToString().Trim().ToLower() == "false")
+					return false;
 				return fallbackValue;
 			}
 		}
@@ -462,7 +476,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -493,7 +508,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -520,7 +536,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -551,7 +568,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -578,7 +596,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -609,7 +628,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -636,7 +656,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -667,7 +688,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -694,7 +716,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -723,7 +746,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -743,7 +767,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -775,13 +800,14 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
 				if (data == null) return fallbackValue;
-				if (data is DateTime) return (DateTime) data;
+				if (data is DateTime) return (DateTime)data;
 				return fallbackValue;
 			}
 		}
@@ -796,7 +822,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -828,13 +855,14 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
 
 				if (data == null) return fallbackValue;
-				if (data is TimeSpan) return (TimeSpan) data;
+				if (data is TimeSpan) return (TimeSpan)data;
 				return fallbackValue;
 			}
 		}
@@ -849,7 +877,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -869,7 +898,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				object data = null;
 				if (store.ContainsKey(key)) data = store[key];
@@ -890,7 +920,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				return new SettingsStoreBoundList<T>(this, key);
 			}
@@ -908,7 +939,8 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
 
 				return new SettingsStoreBoundDictionary<TKey, TValue>(this, key);
 			}
@@ -980,7 +1012,8 @@ namespace Unclassified.Util
 							}
 						}
 
-						if (xdoc.DocumentElement.Name != "settings") throw new XmlException("Invalid XML root element");
+						if (xdoc.DocumentElement.Name != "settings")
+							throw new XmlException("Invalid XML root element");
 						foreach (XmlNode xn in xdoc.DocumentElement.ChildNodes)
 						{
 							if (xn.Name == "entry")
@@ -988,7 +1021,8 @@ namespace Unclassified.Util
 								string key = xn.Attributes["key"].Value.Trim();
 								string type = xn.Attributes["type"].Value.Trim();
 
-								if (key == "") throw new XmlException("Empty entry key");
+								if (key == "")
+									throw new XmlException("Empty entry key");
 
 								if (type == "string")
 								{
@@ -1075,9 +1109,11 @@ namespace Unclassified.Util
 								else if (type == "bool")
 								{
 									if (xn.InnerText.ToString().Trim() == "1" ||
-										xn.InnerText.ToString().Trim().ToLower() == "true") store.Add(key, true);
+										xn.InnerText.ToString().Trim().ToLower() == "true")
+										store.Add(key, true);
 									else if (xn.InnerText.ToString().Trim() == "0" ||
-										xn.InnerText.ToString().Trim().ToLower() == "false") store.Add(key, false);
+										xn.InnerText.ToString().Trim().ToLower() == "false")
+										store.Add(key, false);
 									else throw new FormatException("Invalid bool value");
 								}
 								else if (type == "bool[]" ||
@@ -1087,9 +1123,11 @@ namespace Unclassified.Util
 									foreach (XmlNode itemNode in xn.SelectNodes("item"))
 									{
 										if (itemNode.InnerText.ToString().Trim() == "1" ||
-											itemNode.InnerText.ToString().Trim().ToLower() == "true") list.Add(true);
+											itemNode.InnerText.ToString().Trim().ToLower() == "true")
+											list.Add(true);
 										else if (itemNode.InnerText.ToString().Trim() == "0" ||
-											itemNode.InnerText.ToString().Trim().ToLower() == "false") list.Add(false);
+											itemNode.InnerText.ToString().Trim().ToLower() == "false")
+											list.Add(false);
 										else throw new FormatException("Invalid bool value");
 									}
 									store.Add(key, list.ToArray());
@@ -1229,8 +1267,10 @@ namespace Unclassified.Util
 		{
 			lock (syncLock)
 			{
-				if (isDisposed) throw new ObjectDisposedException("");
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (isDisposed)
+					throw new ObjectDisposedException(GetType().FullName);
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				if (saveDc.IsDisposed || saveDc.IsWaiting || savePending)
 				{
@@ -1249,7 +1289,8 @@ namespace Unclassified.Util
 			{
 				savePending = false;
 				if (isDisposed) return;
-				if (readOnly) throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
+				if (readOnly)
+					throw new InvalidOperationException("This SettingsStore instance is created in read-only mode.");
 
 				List<string> listKeys = new List<string>(store.Keys);
 				listKeys.Sort();
@@ -1279,7 +1320,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "string[]";
 						xn.Attributes.Append(xa);
-						string[] sa = (string[]) store[key];
+						string[] sa = (string[])store[key];
 						foreach (string s in sa)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1299,7 +1340,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "int[]";
 						xn.Attributes.Append(xa);
-						int[] ia = (int[]) store[key];
+						int[] ia = (int[])store[key];
 						foreach (int i in ia)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1319,7 +1360,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "long[]";
 						xn.Attributes.Append(xa);
-						long[] la = (long[]) store[key];
+						long[] la = (long[])store[key];
 						foreach (long l in la)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1339,7 +1380,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "double[]";
 						xn.Attributes.Append(xa);
-						double[] da = (double[]) store[key];
+						double[] da = (double[])store[key];
 						foreach (double d in da)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1379,7 +1420,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "bool[]";
 						xn.Attributes.Append(xa);
-						bool[] ba = (bool[]) store[key];
+						bool[] ba = (bool[])store[key];
 						foreach (bool b in ba)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1399,7 +1440,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "DateTime[]";
 						xn.Attributes.Append(xa);
-						DateTime[] da = (DateTime[]) store[key];
+						DateTime[] da = (DateTime[])store[key];
 						foreach (DateTime d in da)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1419,7 +1460,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "TimeSpan[]";
 						xn.Attributes.Append(xa);
-						TimeSpan[] ta = (TimeSpan[]) store[key];
+						TimeSpan[] ta = (TimeSpan[])store[key];
 						foreach (TimeSpan t in ta)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");
@@ -1432,7 +1473,7 @@ namespace Unclassified.Util
 						xa = xdoc.CreateAttribute("type");
 						xa.Value = "map";
 						xn.Attributes.Append(xa);
-						NameValueCollection collection = (NameValueCollection) store[key];
+						NameValueCollection collection = (NameValueCollection)store[key];
 						for (int i = 0; i < collection.Count; i++)
 						{
 							XmlNode itemNode = xdoc.CreateElement("item");

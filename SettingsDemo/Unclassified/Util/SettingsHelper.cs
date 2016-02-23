@@ -22,7 +22,8 @@ namespace Unclassified.Util
 		/// <summary>
 		/// Returns a settings file path in the user's AppData directory.
 		/// </summary>
-		/// <param name="directory">The directory in the AppData directory. May include backslashes or slashes for subdirectories.</param>
+		/// <param name="directory">The directory in the AppData directory. May include backslashes
+		///   or slashes for subdirectories.</param>
 		/// <param name="fileName">The settings file name.</param>
 		/// <returns></returns>
 		/// <remarks>
@@ -62,7 +63,8 @@ namespace Unclassified.Util
 		/// <summary>
 		/// Returns a settings file path in the system's ProgramData directory.
 		/// </summary>
-		/// <param name="directory">The directory in the ProgramData directory. May include backslashes or slashes for subdirectories.</param>
+		/// <param name="directory">The directory in the ProgramData directory. May include
+		///   backslashes or slashes for subdirectories.</param>
 		/// <param name="fileName">The settings file name.</param>
 		/// <returns></returns>
 		/// <remarks>
@@ -95,15 +97,19 @@ namespace Unclassified.Util
 		/// Returns an object for the specified interface type with a backing file store.
 		/// </summary>
 		/// <typeparam name="TSettings">The settings interface type to implement.</typeparam>
-		/// <param name="directory">The directory in the application data base directory. May include backslashes or slashes for subdirectories.</param>
+		/// <param name="directory">The directory in the application data base directory. May
+		///   include backslashes or slashes for subdirectories.</param>
 		/// <param name="fileName">The settings file name.</param>
-		/// <param name="userLevel">Specifies whether a user-level path is returned instead of a system-level path.</param>
+		/// <param name="userLevel">Specifies whether a user-level path is returned instead of a
+		///   system-level path.</param>
+		/// <param name="readOnly">true to open the settings file in read-only mode. This prevents
+		///   any write access to the settings and will never save the file back.</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// This method generates platform-default paths for Windows (%AppData% and %ProgramData%)
 		/// and Unix/Linux systems ($HOME/.* and /etc).
 		/// </remarks>
-		public static TSettings NewFile<TSettings>(string directory, string fileName, bool userLevel)
+		public static TSettings NewFile<TSettings>(string directory, string fileName, bool userLevel, bool readOnly)
 			where TSettings : class
 		{
 			string path;
@@ -115,7 +121,7 @@ namespace Unclassified.Util
 			{
 				path = GetProgramDataPath(directory, fileName);
 			}
-			FileSettingsStore store = new FileSettingsStore(path);
+			FileSettingsStore store = new FileSettingsStore(path, readOnly);
 			return SettingsAdapterFactory.New<TSettings>(store);
 		}
 
@@ -131,7 +137,8 @@ namespace Unclassified.Util
 		/// <returns></returns>
 		public static string GetLocationDisplayName(this ISettingsStore settingsStore)
 		{
-			if (settingsStore == null) throw new ArgumentNullException("settingsStore");
+			if (settingsStore == null)
+				throw new ArgumentNullException("settingsStore");
 
 			FileSettingsStore fileStore = settingsStore as FileSettingsStore;
 			if (fileStore != null)
@@ -155,21 +162,54 @@ namespace Unclassified.Util
 		/// pattern.
 		/// </summary>
 		/// <param name="settingsStore">The settings store instance in which to remove keys.</param>
-		/// <param name="keyRegex">The Regex pattern of the setting keys to remove.</param>
+		/// <param name="pattern">The Regex pattern of the setting keys to remove.</param>
 		/// <returns>true if any key was removed, false if none existed or matched.</returns>
-		public static bool RemovePattern(this ISettingsStore settingsStore, string keyRegex)
+		public static bool RemovePattern(this ISettingsStore settingsStore, string pattern)
 		{
-			if (settingsStore == null) throw new ArgumentNullException("settingsStore");
+			if (settingsStore == null)
+				throw new ArgumentNullException("settingsStore");
 
 			bool anyRemoved = false;
 			foreach (string key in settingsStore.GetKeys())
 			{
-				if (Regex.IsMatch(key, keyRegex))
+				if (Regex.IsMatch(key, pattern))
 				{
 					anyRemoved |= settingsStore.Remove(key);
 				}
 			}
 			return anyRemoved;
+		}
+
+		/// <summary>
+		/// Finds setting keys by a regular expression pattern. If the pattern contains at least one
+		/// capturing group, the distinct values of each matching key's first group are returned;
+		/// otherwise the entire matching keys are returned.
+		/// </summary>
+		/// <param name="settingsStore">The settings store instance in which to find keys.</param>
+		/// <param name="pattern">The Regex pattern of the setting keys to find.</param>
+		/// <returns>An array of matching keys.</returns>
+		public static string[] GetKeysByPattern(this ISettingsStore settingsStore, string pattern)
+		{
+			if (settingsStore == null)
+				throw new ArgumentNullException("settingsStore");
+
+			Regex regex = new Regex(pattern);
+			bool hasCapture = regex.GetGroupNumbers().Length > 1;
+			if (hasCapture)
+			{
+				return settingsStore.GetKeys()
+					.Select(k => regex.Match(k))
+					.Where(m => m.Success)
+					.Select(m => m.Groups[1].Value)
+					.Distinct()
+					.ToArray();
+			}
+			else
+			{
+				return settingsStore.GetKeys()
+					.Where(k => Regex.IsMatch(k, pattern))
+					.ToArray();
+			}
 		}
 
 		#endregion ISettingsStore extension methods
